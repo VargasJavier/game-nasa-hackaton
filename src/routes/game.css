@@ -1,0 +1,106 @@
+:root{
+  --grass:#2fa45f; --grass2:#2aa15a; --shadow:#1d703f;
+  --panel:#184e2f; --panel2:#133f26; --text:#f0f7e9;
+  --earth:#8b5a3c; --earth-d:#6d422b; --leaf:#32c15a; --leaf-d:#1e8a3c;
+  --water:#75cfd4; --water-d:#57b3bb; --stroke:#0d2b1a;
+}
+
+.scene{
+  position:relative; width: 1152px; height: 768px;
+  margin: 0 auto; background:
+    radial-gradient(1200px 700px at 70% 0%, var(--grass) 0%, var(--grass2) 70%);
+  image-rendering: pixelated; overflow:hidden;
+}
+
+/* título */
+.title-banner{
+  position:absolute; top:18px; left:18px;
+  background: var(--panel);
+  color: var(--text);
+  padding: 12px 18px;
+  border: 4px solid var(--panel2);
+  border-bottom-right-radius: 12px;
+  font-size: 32px; font-weight: 800;
+  box-shadow: 0 6px 0 var(--shadow);
+}
+
+/* HUD */
+.hud-panel{
+  position:absolute; top:110px; left:18px;
+  width: 150px; background: var(--panel);
+  border:4px solid var(--panel2); color: var(--text);
+  padding:14px; border-radius:10px; box-shadow: 0 6px 0 var(--shadow);
+}
+.hud-row{ display:flex; align-items:center; gap:10px; margin:10px 0; }
+.hud-row .ico{ font-size:24px; filter:saturate(1.2); }
+.hud-row .val{ font-size:32px; font-weight:800; }
+
+/* Panel de lluvia */
+.rain-panel{
+  position:absolute; top:24px; right:24px; width: 250px; height: 160px;
+  background:#d5efe9; color:#0d3942;
+  border:4px solid #7bb7b1; border-radius:12px;
+  box-shadow: 0 6px 0 #5a8f8a;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.rain-ico{
+  width:110px; height:70px; position:relative;
+  background:transparent;
+}
+.rain-ico::before{ /* nube */
+  content:""; position:absolute; inset:0 0 16px 0; margin:auto;
+  width:110px; height:60px; background:#7bb7ff; border:4px solid #4a7acc; border-radius:22px;
+}
+.rain-ico::after{ /* gotas */
+  content:""; position:absolute; left:50%; transform:translateX(-50%);
+  bottom:-6px; width:70px; height:24px; background:
+    radial-gradient(circle at 8px 8px, #4a7acc 7px, transparent 8px) 0 0/24px 24px,
+    radial-gradient(circle at 8px 8px, #4a7acc 7px, transparent 8px) 22px 0/24px 24px,
+    radial-gradient(circle at 8px 8px, #4a7acc 7px, transparent 8px) 44px 0/24px 24px;
+}
+.rain-label{ margin-top:8px; font-weight:700; }
+
+/* Lago */
+.lake{
+  position:absolute; left:24px; bottom:24px; width: 210px; height: 120px;
+  background: var(--water);
+  border:4px solid var(--water-d); border-radius:16px;
+  box-shadow: inset 0 0 0 6px rgba(255,255,255,.15);
+}
+
+/* Jugador */
+.player{
+  position:absolute; left: 360px; top: 430px; width: 38px; height: 48px;
+}
+
+/* Parcelas 3x3 */
+.plots{
+  position:absolute; left: 520px; top: 390px;
+  display:grid; grid-template-columns: repeat(3, 72px); gap: 14px;
+}
+.plot{
+  width:72px; height:72px; background: var(--earth);
+  border:4px solid var(--earth-d); border-radius:10px;
+  box-shadow: 0 6px 0 #5a3a26;
+  display:grid; place-items:center;
+}
+.sprout{
+  width: 34px; height: 26px; background: var(--leaf);
+  border:3px solid var(--leaf-d); border-radius: 10px 10px 2px 2px;
+  clip-path: polygon(50% 0, 95% 40%, 70% 40%, 70% 100%, 30% 100%, 30% 40%, 5% 40%);
+}
+
+/* Árboles */
+.trees{
+  position:absolute; left: 880px; top: 380px;
+  display:grid; grid-template-columns: repeat(3, 82px); gap:16px;
+}
+.tree{
+  width:74px; height:90px; position:relative;
+}
+
+.player {
+  /* use transform for smooth GPU-accelerated movement; avoid transitioning left/top which causes perceived lag */
+  transition: transform 0.06s linear;
+  will-change: transform;
+}
