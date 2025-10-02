@@ -10,6 +10,7 @@ import texture4 from "../assets/icons/FarmLandOnTopvariant2.png"
 import texture5 from "../assets/icons/FarmLandOnTopvariant1.png"
 import texture6 from "../assets/icons/FarmLandOnTopvariant2.png"
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 /** ---------------------------
  *  Config rápida de “assets”
@@ -37,7 +38,7 @@ type Plot = {
 };
 
 const SCENE = { w: 1152, h: 768 };
-const PLAYER = { w: 38, h: 48, speed: 220 };
+const PLAYER = { w: 38, h: 48, speed: 200 };
 
 export default function Game() {
   // jugador
@@ -145,16 +146,20 @@ export default function Game() {
 
   const aliveCrops = plots.filter(p => p.stage > 0 && p.alive).length;
 
+const nav = useNavigate();
   return (
     <div className="scene">
       <div className="title-banner">F4F: Farm4Future</div>
+      <button className="exit-btn" onClick={() => nav("/")}>Salir</button>
 
       {/* HUD */}
       <div className="hud-panel">
         <div className="hud-row"><span className="ico">💧</span><span className="val">{waterTank}</span></div>
         <div className="hud-row"><span className="ico">🗓️</span><span className="val">{turn}</span></div>
         <div className="hud-row"><span className="ico">🌱</span><span className="val">{Math.round(ndvi*100)}</span></div>
-        <div className="hint">E: sembrar  •  R: regar  •  N: turno</div>
+        <div className="hint"><strong>E:</strong> Sow / Sembrar</div>
+        <div className="hint"><strong>R:</strong> Irrigate / Regar</div>
+        <div className="hint"><strong>N:</strong> Turn / Turno</div>
       </div>
 
       {/* Pronóstico */}
@@ -166,6 +171,14 @@ export default function Game() {
       {/* Lago decorativo */}
       <div className="lake" />
 
+      {/* Tanques de agua */}
+      <div className="tank-container">
+        <div className="tank" />
+        <div className="tank">
+          <div className="water" />
+        </div>
+      </div>
+
       {/* Jugador */}
       <div className={`player ${nearest ? "near" : ""}`} style={{ left: pos.x, top: pos.y }}>
         {/* si tienes sprite, descomenta: */}
@@ -173,17 +186,19 @@ export default function Game() {
       </div>
 
       {/* Parcelas */}
-      {plots.map((p, i) => (
-        <div
-          key={i}
-          className={`plot ${nearest === p ? "focus" : ""} ${!p.alive ? "dead" : ""}`}
-          style={{ left: p.x, top: p.y }}
-        >
-          {ASSETS.plotStages[p.stage]
-            ? <img src={ASSETS.plotStages[p.stage]} alt="" draggable={false} width={65} height={65}/>
-            : <div className={`sprout s${p.stage}`} />}
-        </div>
-      ))}
+      <div className="plots">
+        {plots.map((p, i) => (
+          <div
+            key={i}
+            className={`plot ${nearest === p ? "focus" : ""} ${!p.alive ? "dead" : ""}`}
+            style={{ left: p.x, top: p.y }}
+          >
+            {ASSETS.plotStages[p.stage]
+              ? <img src={ASSETS.plotStages[p.stage]} alt="" draggable={false} width={65} height={65}/>
+              : <div className={`sprout s${p.stage}`} />}
+          </div>
+        ))}
+      </div>
 
       {/* Árboles a la derecha (decorativo) */}
       <div className="trees">
