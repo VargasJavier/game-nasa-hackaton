@@ -11,6 +11,8 @@ import texture5 from "../assets/icons/FarmLandOnTopvariant1.png"
 import texture6 from "../assets/icons/FarmLandOnTopvariant2.png"
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import type { Inventory } from "../game/core/types";
+import Shop from "../components/Shop";
 
 /** ---------------------------
  *  Config rápida de “assets”
@@ -56,19 +58,29 @@ export default function Game() {
   // grid 3x3 de parcelas
   const [plots, setPlots] = useState<Plot[]>(() => makePlots());
 
-  // parcela “cercana” para interactuar
+  // parcela "cercana" para interactuar
   const nearest = useMemo(() => nearestPlot(pos, plots), [pos, plots]);
+
+  // inventario y tienda
+  const [currency, setCurrency] = useState(100);
+  const [inventory, setInventory] = useState<Inventory>([
+    { id: 'seed1', name: 'Corn Seed', type: 'seed', quantity: 5, price: 10, icon: '🌽' },
+    { id: 'crop', name: 'Corn', type: 'crop', quantity: 1, price: 5, icon: '🌽' }
+  ]);
+  const [showShop, setShowShop] = useState(false);
+  const [showControls, setShowControls] = useState(false);
 
   /* ----------------- input ----------------- */
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
-      if (["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","e","r","n"].includes(k)) e.preventDefault();
+      if (["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","e","r","n","i","escape"].includes(k)) e.preventDefault();
       keys.current[k] = true;
 
       if (k === "e") plant();
       if (k === "r") irrigate();
       if (k === "n") nextTurn();
+      if (k === "escape") setShowShop(!showShop)
     };
     const up = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
     window.addEventListener("keydown", down);
@@ -113,10 +125,36 @@ export default function Game() {
   /* ----------------- acciones ----------------- */
   function plant() {
     if (!nearest) return;
-    setPlots(ps => ps.map(p => {
-      if (p === nearest && p.stage === 0) return { ...p, stage: 1, moisture: Math.max(p.moisture, 0.25) };
-      return p;
-    }));
+    if (nearest.stage === 5) {
+      harvest();
+      return;
+    }
+    if (nearest.stage === 0) {
+      const seedItem = inventory.find(item => item.type === 'seed');
+      if (!seedItem || seedItem.quantity <= 0) return;
+      setPlots(ps => ps.map(p => {
+        if (p === nearest && p.stage === 0) return { ...p, stage: 1, moisture: Math.max(p.moisture, 0.25) };
+        return p;
+      }));
+      seedItem.quantity -= 1;
+      if (seedItem.quantity === 0) {
+        setInventory(inventory.filter(item => item !== seedItem));
+      } else {
+        setInventory([...inventory]);
+      }
+    }
+  }
+
+  function harvest() {
+    if (!nearest || nearest.stage !== 5) return;
+    const cropItem = inventory.find(item => item.id === 'crop' && item.type === 'crop');
+    if (cropItem) {
+      cropItem.quantity += 1;
+      setInventory([...inventory]);
+    } else {
+      setInventory([...inventory, { id: 'crop', name: 'Corn', type: 'crop', quantity: 1, price: 5, icon: '🌽' }]);
+    }
+    setPlots(ps => ps.map(p => p === nearest ? { ...p, stage: 0, moisture: p.moisture } : p));
   }
 
   function irrigate() {
@@ -136,31 +174,51 @@ export default function Game() {
     setForecast(rollForecast());
   }
 
-  /* ----------------- métricas ----------------- */
-  const ndvi = useMemo(() => {
-    const planted = plots.filter(p => p.stage > 0 && p.alive);
-    if (!planted.length) return 0;
-    // proxy de “salud”: stage/5 ponderado por humedad
-    return Math.min(1, planted.reduce((s,p)=> s + (p.stage/5) * (0.5 + 0.5*p.moisture), 0) / planted.length);
-  }, [plots]);
 
-  const aliveCrops = plots.filter(p => p.stage > 0 && p.alive).length;
 
 const nav = useNavigate();
   return (
     <div className="scene">
-      <div className="title-banner">F4F: Farm4Future</div>
+      <div className="title-banner">Farm4Future - Day {turn}</div>
       <button className="exit-btn" onClick={() => nav("/")}>Salir</button>
 
-      {/* HUD */}
+      {/* HUD - Now shows inventory */}
       <div className="hud-panel">
-        <div className="hud-row"><span className="ico">💧</span><span className="val">{waterTank}</span></div>
-        <div className="hud-row"><span className="ico">🗓️</span><span className="val">{turn}</span></div>
-        <div className="hud-row"><span className="ico">🌱</span><span className="val">{Math.round(ndvi*100)}</span></div>
-        <div className="hint"><strong>E:</strong> Sow / Sembrar</div>
-        <div className="hint"><strong>R:</strong> Irrigate / Regar</div>
-        <div className="hint"><strong>N:</strong> Turn / Turno</div>
+        <div className="hud-section">
+          <h4>Seeds</h4>
+          {inventory.filter(item => item.type === 'seed').map(item => (
+            <div key={item.id} className="inventory-item">
+              {item.icon} {item.name}: {item.quantity}
+            </div>
+          ))}
+        </div>
+        <div className="hud-section">
+          <h4>Crops</h4>
+          {inventory.filter(item => item.type === 'crop').map(item => (
+            <div key={item.id} className="inventory-item">
+              {item.icon} {item.name}: {item.quantity}
+            </div>
+          ))}
+        </div>
+        <div className="hud-section">
+          <div className="hud-row"><span className="ico">💧</span><span className="val">{waterTank}</span></div>
+          <div className="hud-row"><span className="ico">🪙</span><span className="val">{currency}</span></div>
+        </div>
+        <div className="hud-buttons">
+          <button className="controls-btn" onClick={() => setShowControls(!showControls)}>Controls</button>
+          <button className="shop-btn" onClick={() => setShowShop(!showShop)}>Shop</button>
+        </div>
+        {showControls && (
+          <div className="controls-popup">
+            <strong>E:</strong> Sow / Harvest<br/>
+            <strong>R:</strong> Irrigate / Regar<br/>
+            <strong>N:</strong> Turn / Turno<br/>
+            <strong>ESC:</strong> Shop
+          </div>
+        )}
       </div>
+
+      {showShop && <Shop currency={currency} setCurrency={setCurrency} inventory={inventory} setInventory={setInventory} onClose={() => setShowShop(false)} />}
 
       {/* Pronóstico */}
       <div className="rain-panel">

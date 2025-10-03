@@ -27,13 +27,53 @@
 /* HUD */
 .hud-panel{
   position:absolute; top:110px; left:18px;
-  width: 180px; background: var(--panel);
+  width: 220px; background: var(--panel);
   border:4px solid var(--panel2); color: var(--text);
   padding:14px; border-radius:10px; box-shadow: 0 6px 0 var(--shadow);
+  max-height: 400px; 
+}
+.hud-section {
+  margin-bottom: 15px;
+}
+.hud-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  border-bottom: 2px solid var(--panel2);
+  padding-bottom: 4px;
+}
+.inventory-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 14px;
 }
 .hud-row{ display:flex; align-items:center; gap:10px; margin:10px 0; }
 .hud-row .ico{ font-size:24px; filter:saturate(1.2); }
-.hud-row .val{ font-size:32px; font-weight:800; }
+.hud-row .val{ font-size:24px; font-weight:800; }
+.hud-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+}
+.controls-btn, .shop-btn {
+  background: var(--grass);
+  border: 2px solid var(--grass2);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  flex: 1;
+}
+.controls-popup {
+  margin-top: 10px;
+  padding: 10px;
+  background: rgba(0,0,0,0.1);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+}
 
 /* Panel de lluvia */
 .rain-panel{
@@ -140,7 +180,7 @@
 
 /* Parcelas 3x3 */
 .plots{
-  position:absolute; left: 220px; top: 120px;
+  position:absolute; left: 280px; top: 120px;
   display:grid; grid-template-columns: repeat(5, 72px); gap: 14px;
 }
 .plot{
@@ -168,4 +208,61 @@
   /* use transform for smooth GPU-accelerated movement; avoid transitioning left/top which causes perceived lag */
   transition: transform 0.06s linear;
   will-change: transform;
+}
+
+/* Shop modal */
+ .shop {
+  position: absolute;
+  bottom: 50px;
+  right: 50px;
+  background: var(--panel);
+  border: 4px solid var(--panel2);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+  color: var(--text);
+  z-index: 1000;
+  max-width: 400px;
+  width: 300px;
+}
+
+.inventory h3, .shop h3 {
+  margin-top: 0;
+  font-size: 24px;
+}
+
+.inventory ul {
+  list-style: none;
+  padding: 0;
+}
+
+.inventory li {
+  padding: 5px 0;
+  border-bottom: 1px solid var(--panel2);
+}
+
+.shop button, .inventory button {
+  background: var(--grass);
+  border: 2px solid var(--grass2);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 5px;
+}
+
+.shop button:disabled {
+  background: var(--earth);
+  cursor: not-allowed;
+}
+
+.backpack-btn {
+  background: var(--grass);
+  border: 2px solid var(--grass2);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 24px;
+  margin: 5px;
 }
