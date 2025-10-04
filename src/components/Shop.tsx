@@ -34,7 +34,7 @@ export default function Shop({ currency, setCurrency, inventory, setInventory, n
           const cols = 3;
           const r = Math.floor(numPlots / cols);
           const c = numPlots % cols;
-          const origin = { x: 520, y: 390 };
+          const origin = { x: 350, y: 250 };
           const newPlot = {
             x: origin.x + c * 86,
             y: origin.y + r * 86,

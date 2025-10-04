@@ -9,6 +9,7 @@ import texture3 from "../assets/icons/FarmLandOnTopvariant1.png"
 import texture4 from "../assets/icons/FarmLandOnTopvariant2.png"
 import texture5 from "../assets/icons/FarmLandOnTopvariant1.png"
 import texture6 from "../assets/icons/FarmLandOnTopvariant2.png"
+import stageIrrigate from "../assets/icons/WoodTexture2.png" // placeholder for irrigate image
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import type { Inventory } from "../game/core/types";
@@ -30,6 +31,7 @@ const ASSETS = {
     texture5, // maduro
     texture6, // dorado/cosecha
   ],
+  stageIrrigate: stageIrrigate, // imagen para cuando la parcela está regada
 };
 
 type Plot = {
@@ -37,14 +39,16 @@ type Plot = {
   stage: 0|1|2|3|4|5;             // 0 tierra → 5 cosecha
   moisture: number;               // 0..1 humedad local
   alive: boolean;
+  isIrrigated: boolean;           // si la parcela ha sido regada recientemente
 };
 
-const SCENE = { w: 1152, h: 768 };
-const PLAYER = { w: 38, h: 48, speed: 200 };
+// visual sprite is 65x105 (see CSS), keep PLAYER in sync so detection uses correct center
+const PLAYER = { w: 65, h: 105, speed: 200 };
 
 export default function Game() {
   // jugador
   const [pos, setPos] = useState({ x: 360, y: 430 });
+  const posRef = useRef(pos);
   const keys = useRef<Record<string, boolean>>({});
   const raf = useRef<number | null>(null);
   const last = useRef<number>(performance.now());
@@ -58,12 +62,26 @@ export default function Game() {
 
   // grid based on numPlots
   const [plots, setPlots] = useState<Plot[]>(() => makePlots(numPlots));
+  const plotsRef = useRef(plots);
 
   // parcela "cercana" para interactuar
   const nearest = useMemo(() => nearestPlot(pos, plots), [pos, plots]);
 
+  // debug: show player coordinates and nearest plot in console when they change
+  // useEffect(() => {
+  //   console.log('Player pos ->', pos);
+  //   console.log('Nearest plot ->', nearest);
+  // }, [pos, nearest]);
+
+  // keep refs up-to-date so handlers/readers can use latest values without
+  // requiring re-binding of event listeners on every state change
+  useEffect(() => { posRef.current = pos; }, [pos]);
+  useEffect(() => { plotsRef.current = plots; }, [plots]);
+  const forecastRef = useRef(forecast);
+  useEffect(() => { forecastRef.current = forecast; }, [forecast]);
+
   // inventario y tienda
-  const [currency, setCurrency] = useState(100);
+  const [currency, setCurrency] = useState(100000);
   const [inventory, setInventory] = useState<Inventory>([
     { id: 'seed1', name: 'Corn Seed', type: 'seed', quantity: 5, price: 10, icon: '🌽' },
     { id: 'crop', name: 'Corn', type: 'crop', quantity: 1, price: 5, icon: '🌽' }
@@ -73,21 +91,25 @@ export default function Game() {
 
   /* ----------------- input ----------------- */
   useEffect(() => {
+    // attach once; handlers will read latest state via refs
     const down = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
       if (["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","e","r","n","i","escape"].includes(k)) e.preventDefault();
       keys.current[k] = true;
 
-      if (k === "e") plant();
+      if (k === "e") {
+        // call action reading latest pos/plots via refs inside function
+        plant();
+      }
       if (k === "r") irrigate();
       if (k === "n") nextTurn();
-      if (k === "escape") setShowShop(!showShop)
+      if (k === "escape") setShowShop(s => !s);
     };
     const up = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
     return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
-  }, [plots, waterTanks, forecast]);
+  }, []);
 
   /* ----------------- loop ----------------- */
   useEffect(() => {
@@ -125,16 +147,21 @@ export default function Game() {
 
   /* ----------------- acciones ----------------- */
   function plant() {
-    if (!nearest) return;
-    if (nearest.stage === 5) {
+    // read latest from refs
+    const posNow = posRef.current;
+    const plotsNow = plotsRef.current;
+    const n = nearestPlot(posNow, plotsNow);
+    console.log('plant -> nearest', n);
+    if (!n) return;
+    if (n.stage === 5) {
       harvest();
       return;
     }
-    if (nearest.stage === 0) {
+    if (n.stage === 0) {
       const seedItem = inventory.find(item => item.type === 'seed');
       if (!seedItem || seedItem.quantity <= 0) return;
       setPlots(ps => ps.map(p => {
-        if (p === nearest && p.stage === 0) return { ...p, stage: 1, moisture: Math.max(p.moisture, 0.25) };
+        if (p.x === n.x && p.y === n.y && p.stage === 0) return { ...p, stage: 1, moisture: Math.max(p.moisture, 0.25) };
         return p;
       }));
       seedItem.quantity -= 1;
@@ -143,11 +170,20 @@ export default function Game() {
       } else {
         setInventory([...inventory]);
       }
+    } else if (n.stage > 0 && n.stage < 5) {
+      // allow manual advancement by 1 stage when pressing E on an already planted plot
+      setPlots(ps => ps.map(p => {
+        if (p.x === n.x && p.y === n.y && p.stage > 0 && p.stage < 5) {
+          return { ...p, stage: (p.stage + 1) as Plot['stage'], moisture: Math.min(1, p.moisture + 0.1) };
+        }
+        return p;
+      }));
     }
   }
 
   function harvest() {
-    if (!nearest || nearest.stage !== 5) return;
+    const n = nearestPlot(posRef.current, plotsRef.current);
+    if (!n || n.stage !== 5) return;
     const cropItem = inventory.find(item => item.id === 'crop' && item.type === 'crop');
     if (cropItem) {
       cropItem.quantity += 1;
@@ -155,11 +191,12 @@ export default function Game() {
     } else {
       setInventory([...inventory, { id: 'crop', name: 'Corn', type: 'crop', quantity: 1, price: 5, icon: '🌽' }]);
     }
-    setPlots(ps => ps.map(p => p === nearest ? { ...p, stage: 0, moisture: p.moisture } : p));
+    setPlots(ps => ps.map(p => (p.x === n.x && p.y === n.y) ? { ...p, stage: 0, moisture: p.moisture } : p));
   }
 
   function irrigate() {
-    if (!nearest || waterTanks.reduce((a, b) => a + b, 0) <= 0) return;
+    const n = nearestPlot(posRef.current, plotsRef.current);
+    if (!n || n.stage < 2 || waterTanks.reduce((a, b) => a + b, 0) <= 0) return;
     setWaterTanks(tanks => {
       const newTanks = [...tanks];
       for (let i = 0; i < newTanks.length; i++) {
@@ -171,16 +208,18 @@ export default function Game() {
       return newTanks;
     });
     setPlots(ps => ps.map(p => {
-      if (p === nearest) return { ...p, moisture: Math.min(1, p.moisture + 0.25) };
+      if (p.x === n.x && p.y === n.y) return { ...p, moisture: Math.min(1, p.moisture + 0.25), isIrrigated: true };
       return p;
     }));
   }
 
   function nextTurn() {
-    // lluvia recarga humedad en todas las parcelas
-    setPlots(ps => ps.map(p => stepGrowth(p, forecast)));
+    // lluvia recarga humedad en todas las parcelas; use latest forecastRef
+    setPlots(ps => ps.map(p => ({ ...stepGrowth(p, forecastRef.current), isIrrigated: false })));
     setTurn(t => t + 1);
-    setForecast(rollForecast());
+    const newFc = rollForecast();
+    setForecast(newFc);
+    forecastRef.current = newFc;
   }
 
 
@@ -253,7 +292,7 @@ const nav = useNavigate();
       {/* Jugador */}
       <div className={`player ${nearest ? "near" : ""}`} style={{ left: pos.x, top: pos.y }}>
         {/* si tienes sprite, descomenta: */}
-        <img src={frameFarmer} alt="Personaje" width={120}/>
+        <img src={frameFarmer} alt="Personaje" width={65}/>
       </div>
 
       {/* Parcelas */}
@@ -261,12 +300,14 @@ const nav = useNavigate();
         {plots.map((p, i) => (
           <div
             key={i}
-            className={`plot ${nearest === p ? "focus" : ""} ${!p.alive ? "dead" : ""}`}
+            className={`plot ${(nearest && p.x === nearest.x && p.y === nearest.y) ? "focus" : ""} ${!p.alive ? "dead" : ""}`}
             style={{ left: p.x, top: p.y }}
           >
-            {ASSETS.plotStages[p.stage]
-              ? <img src={ASSETS.plotStages[p.stage]} alt="" draggable={false} width={65} height={65}/>
-              : <div className={`sprout s${p.stage}`} />}
+            {p.isIrrigated
+              ? <img src={ASSETS.stageIrrigate} alt="" draggable={false} width={65} height={65}/>
+              : ASSETS.plotStages[p.stage]
+                ? <img src={ASSETS.plotStages[p.stage]} alt="" draggable={false} width={65} height={65}/>
+                : <div className={`sprout s${p.stage}`} />}
           </div>
         ))}
       </div>
@@ -285,23 +326,33 @@ const nav = useNavigate();
 
 /* ----------------- helpers ----------------- */
 function clampToScene(p:{x:number;y:number}){
+  // limits requested: X up to 1090, Y up to 663
+  const MAX_X = 1090;
+  const MAX_Y = 663;
   return {
-    x: Math.max(0, Math.min(SCENE.w - PLAYER.w, p.x)),
-    y: Math.max(0, Math.min(SCENE.h - PLAYER.h, p.y)),
+    x: Math.max(0, Math.min(MAX_X - PLAYER.w, p.x)),
+    y: Math.max(0, Math.min(MAX_Y - PLAYER.h, p.y)),
   };
 }
 function dist(ax:number,ay:number,bx:number,by:number){ return Math.hypot(ax-bx, ay-by); }
 function nearestPlot(player:{x:number;y:number}, plots:Plot[]){
   let best: Plot | null = null, bestD = Infinity;
-  for (const p of plots){
-    const d = dist(player.x+PLAYER.w/2, player.y+PLAYER.h/2, p.x+36, p.y+36);
-    if (d < bestD && d < 90) { best = p; bestD = d; }
+  for (const p of plots) {
+    // center of player vs center of plot (plot visual is 72x72, so +36)
+    const d = dist(player.x + PLAYER.w/2, player.y + PLAYER.h/2, p.x + 36, p.y + 36);
+    // console.log('PLOTS D', d)
+    if (d < bestD && d < 90) {
+      // console.log('PLOTS TRUE')
+      best = p;
+      bestD = d;
+    }
   }
+  // console.log('RETURN NEARESTPLOT', best)
   return best;
 }
 function makePlots(numPlots: number): Plot[] {
   const out: Plot[] = [];
-  const origin = { x: 520, y: 390 };
+  const origin = { x: 350, y: 250 };
   const cols = 3; // max columns
   let idx = 0;
   for (let r = 0; r < Math.ceil(numPlots / cols); r++) {
@@ -312,6 +363,7 @@ function makePlots(numPlots: number): Plot[] {
         stage: 0,
         moisture: 0.25,
         alive: true,
+        isIrrigated: false,
       });
       idx++;
     }
