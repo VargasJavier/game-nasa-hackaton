@@ -51,12 +51,13 @@ export default function Game() {
   const [frameFarmer, setFrameFarmer] = useState(ASSETS.farmerIdle)
 
   // recursos y clima
-  const [waterTank, setWaterTank] = useState(25);
+  const [waterTanks, setWaterTanks] = useState<number[]>([0]); // start with 1 tank at full
+  const [numPlots, setNumPlots] = useState(1); // start with 1 plot
   const [turn, setTurn] = useState(1);
   const [forecast, setForecast] = useState(() => rollForecast());
 
-  // grid 3x3 de parcelas
-  const [plots, setPlots] = useState<Plot[]>(() => makePlots());
+  // grid based on numPlots
+  const [plots, setPlots] = useState<Plot[]>(() => makePlots(numPlots));
 
   // parcela "cercana" para interactuar
   const nearest = useMemo(() => nearestPlot(pos, plots), [pos, plots]);
@@ -86,7 +87,7 @@ export default function Game() {
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
     return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
-  }, [plots, waterTank, forecast]);
+  }, [plots, waterTanks, forecast]);
 
   /* ----------------- loop ----------------- */
   useEffect(() => {
@@ -158,8 +159,17 @@ export default function Game() {
   }
 
   function irrigate() {
-    if (!nearest || waterTank <= 0) return;
-    setWaterTank(w => Math.max(0, w - 1));
+    if (!nearest || waterTanks.reduce((a, b) => a + b, 0) <= 0) return;
+    setWaterTanks(tanks => {
+      const newTanks = [...tanks];
+      for (let i = 0; i < newTanks.length; i++) {
+        if (newTanks[i] > 0) {
+          newTanks[i] = Math.max(0, newTanks[i] - 1);
+          break;
+        }
+      }
+      return newTanks;
+    });
     setPlots(ps => ps.map(p => {
       if (p === nearest) return { ...p, moisture: Math.min(1, p.moisture + 0.25) };
       return p;
@@ -167,9 +177,8 @@ export default function Game() {
   }
 
   function nextTurn() {
-    // lluvia recarga humedad en todas las parcelas y tanque si llueve fuerte
+    // lluvia recarga humedad en todas las parcelas
     setPlots(ps => ps.map(p => stepGrowth(p, forecast)));
-    if (forecast.mm >= 5) setWaterTank(w => Math.min(99, w + 2));
     setTurn(t => t + 1);
     setForecast(rollForecast());
   }
@@ -201,7 +210,7 @@ const nav = useNavigate();
           ))}
         </div>
         <div className="hud-section">
-          <div className="hud-row"><span className="ico">💧</span><span className="val">{waterTank}</span></div>
+          <div className="hud-row"><span className="ico">💧</span><span className="val">{waterTanks.reduce((a, b) => a + b, 0)}</span></div>
           <div className="hud-row"><span className="ico">🪙</span><span className="val">{currency}</span></div>
         </div>
         <div className="hud-buttons">
@@ -218,7 +227,7 @@ const nav = useNavigate();
         )}
       </div>
 
-      {showShop && <Shop currency={currency} setCurrency={setCurrency} inventory={inventory} setInventory={setInventory} onClose={() => setShowShop(false)} />}
+      {showShop && <Shop currency={currency} setCurrency={setCurrency} inventory={inventory} setInventory={setInventory} numPlots={numPlots} setNumPlots={setNumPlots} waterTanks={waterTanks} setWaterTanks={setWaterTanks} plots={plots} setPlots={setPlots} onClose={() => setShowShop(false)} />}
 
       {/* Pronóstico */}
       <div className="rain-panel">
@@ -226,15 +235,19 @@ const nav = useNavigate();
         <div className="rain-label">Rain: {forecast.label} ({forecast.mm.toFixed(1)}mm)</div>
       </div>
 
-      {/* Lago decorativo */}
-      <div className="lake" />
+      {/* Rio */}
+      <div className="river" />
 
       {/* Tanques de agua */}
       <div className="tank-container">
-        <div className="tank" />
-        <div className="tank">
-          <div className="water" />
-        </div>
+        {waterTanks.map((level, i) => (
+          <div key={i} className="tank">
+            {level > 0 && (
+              <div className="water" style={{ height: `${(level / 10) * 100}%` }} />
+            )}
+            <div className="tank-label">{level}/10</div>
+          </div>
+        ))}
       </div>
 
       {/* Jugador */}
@@ -286,15 +299,16 @@ function nearestPlot(player:{x:number;y:number}, plots:Plot[]){
   }
   return best;
 }
-function makePlots(): Plot[] {
+function makePlots(numPlots: number): Plot[] {
   const out: Plot[] = [];
   const origin = { x: 520, y: 390 };
+  const cols = 3; // max columns
   let idx = 0;
-  for (let r=0;r<3;r++){
-    for (let c=0;c<3;c++){
+  for (let r = 0; r < Math.ceil(numPlots / cols); r++) {
+    for (let c = 0; c < cols && idx < numPlots; c++) {
       out.push({
-        x: origin.x + c*86,
-        y: origin.y + r*86,
+        x: origin.x + c * 86,
+        y: origin.y + r * 86,
         stage: 0,
         moisture: 0.25,
         alive: true,

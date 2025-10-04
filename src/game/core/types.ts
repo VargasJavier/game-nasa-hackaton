@@ -1,7 +1,7 @@
 export interface Item {
   id: string;
   name: string;
-  type: 'seed' | 'crop';
+  type: 'seed' | 'crop' | 'plot' | 'tank';
   quantity: number;
   price: number;
   icon: string;

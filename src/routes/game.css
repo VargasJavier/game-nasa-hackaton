@@ -31,6 +31,7 @@
   border:4px solid var(--panel2); color: var(--text);
   padding:14px; border-radius:10px; box-shadow: 0 6px 0 var(--shadow);
   max-height: 400px; 
+  z-index: 50;
 }
 .hud-section {
   margin-bottom: 15px;
@@ -100,13 +101,21 @@
 }
 .rain-label{ margin-top:8px; font-weight:700; }
 
-/* Lago */
-.lake{
-  position:absolute; left:24px; bottom:24px; width: 210px; height: 120px;
-  background: var(--water);
-  border:4px solid var(--water-d); border-radius:16px;
-  box-shadow: inset 0 0 0 6px rgba(255,255,255,.15);
+/* Rio */
+.river {
+  position: absolute;
+  left: -142px;
+  bottom: -70px;
+  width: 550px;
+  height: 380px;
+  background: radial-gradient(circle at 40% 60%, var(--water) 60%, var(--water-d) 100%);
+  border: 4px solid var(--water-d);
+  border-radius: 5% 93% 0% 89% / 4% 82% 16% 100%;
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.15), inset 0 0 40px rgba(0, 0, 0, 0.25);
+  background-size: 200% 200%;
 }
+
+
 /* Tanques de agua */
 .tank-container{
   position: absolute; right:24px; bottom:24px; width: 410px; height: 140px;
@@ -152,6 +161,17 @@
   height: 85%; /* nivel de agua */
   background: var(--water, #4fc3f7);
   overflow: hidden;
+}
+
+.tank-label {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: bold;
+  color: #000;
+  text-shadow: 1px 1px 1px rgba(255,255,255,0.5);
 }
 
 .water::before {
