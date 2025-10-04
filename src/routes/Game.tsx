@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import "./game.css";
 import farmer from '../assets/icons/farmer.png'
 import farmerInvert from '../assets/icons/farmerInvert.png'
+import farmerWalk from '../assets/icons/farmerWalk.gif'
+import farmerWalkInvert from '../assets/icons/farmerWalkInvert.gif'
 import tree from '../assets/icons/JungleTree.png'
 import texture1 from "../assets/icons/WoodTexture1.png"
 import texture2 from "../assets/icons/WoodTexture2.png"
@@ -22,6 +24,8 @@ import Shop from "../components/Shop";
 const ASSETS = {
   farmerIdle: farmer,
   farmerIdleInvert: farmerInvert,
+  farmerWalk: farmerWalk,
+  farmerWalkInvert: farmerWalkInvert,
   tree: tree,
   plotStages: [
     texture1, // tierra
@@ -43,7 +47,15 @@ type Plot = {
 };
 
 // visual sprite is 65x105 (see CSS), keep PLAYER in sync so detection uses correct center
-const PLAYER = { w: 65, h: 105, speed: 200 };
+const PLAYER = { w: 65, h: 105, speed: 250 };
+
+// Rio coordinates
+const RIVER_X = -50;
+const RIVER_Y = 100; // bottom
+const RIVER_WIDTH = 200;
+const RIVER_HEIGHT = 200;
+const RIVER_CENTER_X = RIVER_X + RIVER_WIDTH / 2;
+const RIVER_CENTER_Y = 630 - RIVER_Y - RIVER_HEIGHT / 2; // scene height 630
 
 export default function Game() {
   // jugador
@@ -53,6 +65,9 @@ export default function Game() {
   const raf = useRef<number | null>(null);
   const last = useRef<number>(performance.now());
   const [frameFarmer, setFrameFarmer] = useState(ASSETS.farmerIdle)
+  const [facingRight, setFacingRight] = useState(false);
+  const facingRightRef = useRef(facingRight);
+  useEffect(() => { facingRightRef.current = facingRight; }, [facingRight]);
 
   // recursos y clima
   const [waterTanks, setWaterTanks] = useState<number[]>([0]); // start with 1 tank at full
@@ -67,6 +82,13 @@ export default function Game() {
   // parcela "cercana" para interactuar
   const nearest = useMemo(() => nearestPlot(pos, plots), [pos, plots]);
 
+  // cerca del río para recolectar agua
+  const isNearRiver = useMemo(() => {
+    const playerCenterX = pos.x + PLAYER.w / 2;
+    const playerCenterY = pos.y + PLAYER.h / 2;
+    return dist(playerCenterX, playerCenterY, RIVER_CENTER_X, RIVER_CENTER_Y) < 100;
+  }, [pos]);
+
   // debug: show player coordinates and nearest plot in console when they change
   // useEffect(() => {
   //   console.log('Player pos ->', pos);
@@ -79,6 +101,8 @@ export default function Game() {
   useEffect(() => { plotsRef.current = plots; }, [plots]);
   const forecastRef = useRef(forecast);
   useEffect(() => { forecastRef.current = forecast; }, [forecast]);
+  const isNearRiverRef = useRef(isNearRiver);
+  useEffect(() => { isNearRiverRef.current = isNearRiver; }, [isNearRiver]);
 
   // inventario y tienda
   const [currency, setCurrency] = useState(100000);
@@ -98,11 +122,20 @@ export default function Game() {
       if (["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","e","r","n","i","escape"].includes(k)) e.preventDefault();
       keys.current[k] = true;
 
+      if (k === "arrowleft" || k === "a") setFacingRight(false);
+      if (k === "arrowright" || k === "d") setFacingRight(true);
+
       if (k === "e") {
         // call action reading latest pos/plots via refs inside function
-        plant();
+          plant();
       }
-      if (k === "r") irrigate();
+      if (k === "r") {
+        if (isNearRiverRef.current) {
+          collectWater();
+        } else {
+          irrigate();
+        }
+      } 
       if (k === "n") nextTurn();
       if (k === "escape") setShowShop(s => !s);
     };
@@ -119,16 +152,8 @@ export default function Game() {
       last.current = t;
 
       let dx = 0, dy = 0;
-      if (keys.current["arrowleft"] || keys.current["a"]) {
-        dx -= 1;
-        // use functional updater so we always compare/update against the latest state
-        setFrameFarmer(prev => prev === ASSETS.farmerIdle ? prev : ASSETS.farmerIdle);
-      }
-      if (keys.current["arrowright"] || keys.current["d"]) {
-        dx += 1;
-        // use functional updater so we always compare/update against the latest state
-        setFrameFarmer(prev => prev === ASSETS.farmerIdleInvert ? prev : ASSETS.farmerIdleInvert);
-      }
+      if (keys.current["arrowleft"] || keys.current["a"]) dx -= 1;
+      if (keys.current["arrowright"] || keys.current["d"]) dx += 1;
       if (keys.current["arrowup"] || keys.current["w"]) dy -= 1;
       if (keys.current["arrowdown"] || keys.current["s"]) dy += 1;
 
@@ -140,6 +165,8 @@ export default function Game() {
           y: p.y + dy * PLAYER.speed * dt
         }));
       }
+      const isMoving = !!(dx || dy);
+      setFrameFarmer(isMoving ? (facingRightRef.current ? ASSETS.farmerWalkInvert : ASSETS.farmerWalk) : (facingRightRef.current ? ASSETS.farmerIdleInvert : ASSETS.farmerIdle));
       raf.current = requestAnimationFrame(loop);
     };
     raf.current = requestAnimationFrame(loop);
@@ -214,6 +241,19 @@ export default function Game() {
     }));
   }
 
+  function collectWater() {
+    setWaterTanks(tanks => {
+      const newTanks = [...tanks];
+      for (let i = 0; i < newTanks.length; i++) {
+        if (newTanks[i] < 10) {
+          newTanks[i] += 1;
+          break;
+        }
+      }
+      return newTanks;
+    });
+  }
+
   function nextTurn() {
     // lluvia recarga humedad en todas las parcelas; use latest forecastRef
     setPlots(ps => ps.map(p => ({ ...stepGrowth(p, forecastRef.current), isIrrigated: false })));
@@ -232,7 +272,6 @@ export default function Game() {
         <button className="exit-btn" onClick={() => nav("/")}>Salir</button>
       </div>
       <div className="scene">
-
         {/* HUD - Now shows inventory */}
         <div className="hud-panel">
           <div className="hud-section">
@@ -261,7 +300,7 @@ export default function Game() {
           </div>
           {showControls && (
             <div className="controls-popup">
-              <strong>E:</strong> Sow / Harvest<br/>
+              <strong>E:</strong> Sow / Harvest / Collect Water<br/>
               <strong>R:</strong> Irrigate / Regar<br/>
               <strong>N:</strong> Turn / Turno<br/>
               <strong>ESC:</strong> Shop
@@ -278,7 +317,7 @@ export default function Game() {
         </div>
 
         {/* Rio */}
-        <div className="river" />
+        <div className={`river ${isNearRiver ? "focus" : ""}`} style={{ left: RIVER_X, bottom: RIVER_Y, width: RIVER_WIDTH, height: RIVER_HEIGHT }} />
 
         {/* Tanques de agua */}
         <div className="tank-container">
