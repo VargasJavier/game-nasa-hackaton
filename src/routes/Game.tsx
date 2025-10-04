@@ -68,6 +68,7 @@ export default function Game() {
     { id: 'seed1', name: 'Corn Seed', type: 'seed', quantity: 5, price: 10, icon: '🌽' },
     { id: 'crop', name: 'Corn', type: 'crop', quantity: 1, price: 5, icon: '🌽' }
   ]);
+  const [decorations, setDecorations] = useState<string[]>([]); // owned decoration ids
   const [showShop, setShowShop] = useState(false);
   const [showControls, setShowControls] = useState(false);
 
@@ -183,103 +184,106 @@ export default function Game() {
     setForecast(rollForecast());
   }
 
+  const nav = useNavigate();
 
-
-const nav = useNavigate();
   return (
-    <div className="scene">
-      <div className="title-banner">Farm4Future - Day {turn}</div>
-      <button className="exit-btn" onClick={() => nav("/")}>Salir</button>
+    <>
+      <div className="background">
+        <div className="title-banner">Farm4Future - Day {turn}</div>
+        <button className="exit-btn" onClick={() => nav("/")}>Salir</button>
+      </div>
+      <div className="scene">
 
-      {/* HUD - Now shows inventory */}
-      <div className="hud-panel">
-        <div className="hud-section">
-          <h4>Seeds</h4>
-          {inventory.filter(item => item.type === 'seed').map(item => (
-            <div key={item.id} className="inventory-item">
-              {item.icon} {item.name}: {item.quantity}
+        {/* HUD - Now shows inventory */}
+        <div className="hud-panel">
+          <div className="hud-section">
+            <h4>Seeds</h4>
+            {inventory.filter(item => item.type === 'seed').map(item => (
+              <div key={item.id} className="inventory-item">
+                {item.icon} {item.name}: {item.quantity}
+              </div>
+            ))}
+          </div>
+          <div className="hud-section">
+            <h4>Crops</h4>
+            {inventory.filter(item => item.type === 'crop').map(item => (
+              <div key={item.id} className="inventory-item">
+                {item.icon} {item.name}: {item.quantity}
+              </div>
+            ))}
+          </div>
+          <div className="hud-section">
+            <div className="hud-row"><span className="ico">💧</span><span className="val">{waterTanks.reduce((a, b) => a + b, 0)}</span></div>
+            <div className="hud-row"><span className="ico">🪙</span><span className="val">{currency}</span></div>
+          </div>
+          <div className="hud-buttons">
+            <button className="controls-btn" onClick={() => setShowControls(!showControls)}>Controls</button>
+            <button className="shop-btn" onClick={() => setShowShop(!showShop)}>Shop</button>
+          </div>
+          {showControls && (
+            <div className="controls-popup">
+              <strong>E:</strong> Sow / Harvest<br/>
+              <strong>R:</strong> Irrigate / Regar<br/>
+              <strong>N:</strong> Turn / Turno<br/>
+              <strong>ESC:</strong> Shop
+            </div>
+          )}
+        </div>
+
+        <Shop currency={currency} setCurrency={setCurrency} inventory={inventory} setInventory={setInventory} numPlots={numPlots} setNumPlots={setNumPlots} waterTanks={waterTanks} setWaterTanks={setWaterTanks} plots={plots} setPlots={setPlots} decorations={decorations} setDecorations={setDecorations} show={showShop} onClose={() => setShowShop(false)} />
+
+        {/* Pronóstico */}
+        <div className="rain-panel">
+          <div className="rain-ico" data-level={forecast.label} />
+          <div className="rain-label">Rain: {forecast.label} ({forecast.mm.toFixed(1)}mm)</div>
+        </div>
+
+        {/* Rio */}
+        <div className="river" />
+
+        {/* Tanques de agua */}
+        <div className="tank-container">
+          {waterTanks.map((level, i) => (
+            <div key={i} className="tank">
+              {level > 0 && (
+                <div className="water" style={{ height: `${(level / 10) * 100}%` }} />
+              )}
+              <div className="tank-label">{level}/10</div>
             </div>
           ))}
         </div>
-        <div className="hud-section">
-          <h4>Crops</h4>
-          {inventory.filter(item => item.type === 'crop').map(item => (
-            <div key={item.id} className="inventory-item">
-              {item.icon} {item.name}: {item.quantity}
+
+        {/* Jugador */}
+        <div className={`player ${nearest ? "near" : ""}`} style={{ left: pos.x, top: pos.y }}>
+          {/* si tienes sprite, descomenta: */}
+          <img src={frameFarmer} alt="Personaje" width={120}/>
+        </div>
+
+        {/* Parcelas */}
+        <div className="plots">
+          {plots.map((p, i) => (
+            <div
+              key={i}
+              className={`plot ${nearest === p ? "focus" : ""} ${!p.alive ? "dead" : ""}`}
+              style={{ left: p.x, top: p.y }}
+            >
+              {ASSETS.plotStages[p.stage]
+                ? <img src={ASSETS.plotStages[p.stage]} alt="" draggable={false} width={65} height={65}/>
+                : <div className={`sprout s${p.stage}`} />}
             </div>
           ))}
         </div>
-        <div className="hud-section">
-          <div className="hud-row"><span className="ico">💧</span><span className="val">{waterTanks.reduce((a, b) => a + b, 0)}</span></div>
-          <div className="hud-row"><span className="ico">🪙</span><span className="val">{currency}</span></div>
+
+        {/* decorativos */}
+        <div className="decorative">
+          {decorations.map((dec, i) => (
+            <div key={i} className="tree">
+              <img src={ASSETS.tree} alt="Decoration" width={70}/>
+            </div>
+          ))}
         </div>
-        <div className="hud-buttons">
-          <button className="controls-btn" onClick={() => setShowControls(!showControls)}>Controls</button>
-          <button className="shop-btn" onClick={() => setShowShop(!showShop)}>Shop</button>
-        </div>
-        {showControls && (
-          <div className="controls-popup">
-            <strong>E:</strong> Sow / Harvest<br/>
-            <strong>R:</strong> Irrigate / Regar<br/>
-            <strong>N:</strong> Turn / Turno<br/>
-            <strong>ESC:</strong> Shop
-          </div>
-        )}
       </div>
-
-      {showShop && <Shop currency={currency} setCurrency={setCurrency} inventory={inventory} setInventory={setInventory} numPlots={numPlots} setNumPlots={setNumPlots} waterTanks={waterTanks} setWaterTanks={setWaterTanks} plots={plots} setPlots={setPlots} onClose={() => setShowShop(false)} />}
-
-      {/* Pronóstico */}
-      <div className="rain-panel">
-        <div className="rain-ico" data-level={forecast.label} />
-        <div className="rain-label">Rain: {forecast.label} ({forecast.mm.toFixed(1)}mm)</div>
-      </div>
-
-      {/* Rio */}
-      <div className="river" />
-
-      {/* Tanques de agua */}
-      <div className="tank-container">
-        {waterTanks.map((level, i) => (
-          <div key={i} className="tank">
-            {level > 0 && (
-              <div className="water" style={{ height: `${(level / 10) * 100}%` }} />
-            )}
-            <div className="tank-label">{level}/10</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Jugador */}
-      <div className={`player ${nearest ? "near" : ""}`} style={{ left: pos.x, top: pos.y }}>
-        {/* si tienes sprite, descomenta: */}
-        <img src={frameFarmer} alt="Personaje" width={120}/>
-      </div>
-
-      {/* Parcelas */}
-      <div className="plots">
-        {plots.map((p, i) => (
-          <div
-            key={i}
-            className={`plot ${nearest === p ? "focus" : ""} ${!p.alive ? "dead" : ""}`}
-            style={{ left: p.x, top: p.y }}
-          >
-            {ASSETS.plotStages[p.stage]
-              ? <img src={ASSETS.plotStages[p.stage]} alt="" draggable={false} width={65} height={65}/>
-              : <div className={`sprout s${p.stage}`} />}
-          </div>
-        ))}
-      </div>
-
-      {/* Árboles a la derecha (decorativo) */}
-      <div className="trees">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="tree">
-            <img src={ASSETS.tree} alt="Personaje" width={70}/>
-          </div>
-        ))}
-      </div>
-    </div>
+    </>
   );
 }
 

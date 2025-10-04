@@ -1,6 +1,6 @@
 :root {
   --bg: #0f172a;        /* slate-900 */
-  --panel: #111827;     /* gray-900 */
+  --panel: #111827bf;     /* gray-900 */
   --text: #e5e7eb;      /* gray-200 */
   --accent: #22c55e;    /* green-500 */
   --warn: #f59e0b;      /* amber-500 */
@@ -115,21 +115,5 @@ body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI
   width: 220px; height: 46px; background:#ffd46b; color:#1c1608; font-weight:800;
   border:4px solid #d6a73b; border-radius:14px; cursor:pointer; letter-spacing:1px;
   box-shadow:0 6px 0 #b3822c;
-}
-.exit-btn{
-  width: 80px; height: 50px; background:#ffd46b; color:#1c1608; font-weight:800;
-  border:4px solid #d6a73b; border-radius:14px; cursor:pointer; letter-spacing:1px;
-  box-shadow:0 6px 0 #b3822c;
-  position: absolute;
-  right: 0px;
-  z-index: 50;
-}
-@media(hover:hover){
-  .exit-btn{
-    transition: filter .2s;
-  }
-  .exit-btn:hover{
-    filter: brightness(.8);
-  }
 }
 .start-btn:active{ transform: translateY(2px); box-shadow:0 4px 0 #b3822c; }

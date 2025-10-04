@@ -31,6 +31,17 @@ const Home = () => {
         <button className="wx-btn"><span>❄️</span><small>Frío</small></button>
       </div>
 
+      <div className="map-selector">
+        <label>
+          <input type="radio" name="map" value="map1" defaultChecked />
+          <span>La libertad</span>
+        </label>
+        <label>
+          <input type="radio" name="map" value="map2" />
+          <span>Ica</span>
+        </label>
+      </div>
+
       <button className="start-btn" onClick={() => nav("/game")}>START</button>
     </div>
   );
