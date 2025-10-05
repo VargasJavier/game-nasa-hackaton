@@ -1,11 +1,5 @@
 import React from 'react';
-import type { Plot } from '../game/core/types';
 import ASSETS from '../assets/gameAssets';
-
-interface PlotsProps {
-  plots: Plot[];
-  nearestId?: string;
-}
 
 export const Plots: React.FC<PlotsProps> = ({ plots, nearestId }) => {
   return (

@@ -77,9 +77,9 @@ type GameState = {
   plantTutorialCompleted: boolean;
   weatherTutorialCompleted: boolean;
   finalTutorialCompleted: boolean;
-    selectedRegion: string;
-    selectedDistrict: string;
-    playerName: string;
+  selectedRegion: string;
+  selectedDistrict: string;
+  playerName: string;
 
   // plots
   setPlots: (next: Plot[] | ((prev: Plot[]) => Plot[])) => void;
@@ -148,9 +148,9 @@ type GameState = {
   addWaterTank: (value: number) => void;
   clearWaterTanks: () => void;
 
-    setSelectedRegion: (region: string) => void;
-    setSelectedDistrict: (district: string) => void;
-    setPlayerName: (name: string) => void;
+  setSelectedRegion: (region: string) => void;
+  setSelectedDistrict: (district: string) => void;
+  setPlayerName: (name: string) => void;
   reset: () => void;
 };
 
@@ -302,8 +302,13 @@ export const useGame = create<GameState>((set, get) => ({
   setCloseShopTutorialCompleted: (completed)=> set({closeShopTutorialCompleted: completed}),
   setPlantTutorialCompleted: (completed)=> set({plantTutorialCompleted: completed}),
   setWeatherTutorialCompleted: (completed)=> set({weatherTutorialCompleted: completed}),
-  setFinalTutorialCompleted: (completed)=> set({finalTutorialCompleted: completed}),
-/* siembra/crecimiento/cosecha como en tu versión larga */
+  setFinalTutorialCompleted: (completed) => set({ finalTutorialCompleted: completed }),
+  
+  setSelectedRegion: (region)=> set({selectedRegion: region}),
+  setSelectedDistrict: (district)=> set({selectedDistrict: district}),
+  setPlayerName: (name)=> set({playerName: name}),
+
+  /* siembra/crecimiento/cosecha como en tu versión larga */
   plant(){
     const id = get().nearestId();
     if (!id) return;
@@ -526,8 +531,8 @@ export const useGame = create<GameState>((set, get) => ({
     plantTutorialCompleted: false,
     weatherTutorialCompleted: false,
     finalTutorialCompleted: false,
-      selectedRegion: "",
-      selectedDistrict: "",
-      playerName: ""
+    selectedRegion: "",
+    selectedDistrict: "",
+    playerName: ""
   })
 }));

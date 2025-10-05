@@ -1,10 +1,5 @@
 import React from 'react';
 
-interface TurnCounterProps {
-  currentTurn: number;
-  onNextTurn: () => void;
-}
-
 export default function TurnCounter({ currentTurn, onNextTurn }: TurnCounterProps) {
   return (
     <div className="hud-section">

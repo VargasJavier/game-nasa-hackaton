@@ -4,11 +4,6 @@ import { useGame } from '../game/state/store';
 import type { InventoryItem } from '../game/core/types';
 import TurnCounter from './HUD/TurnCounter';
 
-interface HUDPanelProps {
-  showControls: boolean;
-  setShowControls: (show: boolean) => void;
-}
-
 export const HUDPanel: React.FC<HUDPanelProps> = ({ showControls, setShowControls }) => {
   const { seeds, crops, selectedSeedId, selectSeed } = useInventory();
   const { resources, toggleShop, nextTurn } = useGame();

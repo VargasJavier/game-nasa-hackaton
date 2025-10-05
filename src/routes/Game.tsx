@@ -36,6 +36,7 @@ export default function Game() {
     plots,
     decorations,
     inventory,
+    selectedDistrict,
     setIsNearRiver,
     tutorialShown,
     riverTutorialCompleted,

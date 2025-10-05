@@ -12,6 +12,7 @@ import texture6 from "./icons/FarmLandOnTopvariant2.png"
 import riverImg from './icons/river.webp'
 import lowerRiverImg from './icons/lowerRiiver.webp'
 import dryRiverImg from './icons/dryRiiver.webp'
+import laLibertadMap from './icons/laLibertad.png'
 import stageIrrigate from "./icons/WoodTexture2.png" // placeholder for irrigate image
 
 const ASSETS = {
@@ -22,6 +23,7 @@ const ASSETS = {
   farmerIdleInvert: farmerInvert,
   farmerWalk: farmerWalk,
   farmerWalkInvert: farmerWalkInvert,
+  laLibertadMap: laLibertadMap
   tree: tree,
   plotStages: [
     texture1, // tierra

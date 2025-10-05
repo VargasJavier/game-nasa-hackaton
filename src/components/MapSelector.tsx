@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useGame } from '../game/state/store';
-import laLibertadMap from '../assets/icons/laLibertad.png';
+import ASSETS from '../assets/gameAssets';
 
 const districts = [
   { name: 'Trujillo', x: 123, y: 190, width: 100, height: 80 },
@@ -83,7 +83,7 @@ export default function MapSelector() {
         <div className="district-map">
           <h2>Select District in La Libertad - Perú</h2>
           <div className="map-container">
-            <img src={laLibertadMap} alt="La Libertad Map" className="map-image" />
+            <img src={ASSETS.laLibertadMap} alt="La Libertad Map" className="map-image" />
             {districts.map((district) => (
               <div
                 key={district.name}

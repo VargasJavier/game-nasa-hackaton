@@ -1,10 +1,5 @@
 import React from 'react';
-import type { Inventory } from '../game/core/types';
-
-interface InventoryProps {
-  inventory: Inventory;
-  onClose?: () => void;
-}
+import type { Inventory, InventoryItem } from '../game/core/types';
 
 export default function Inventory({ inventory, onClose }: InventoryProps) {
   return (
@@ -15,7 +10,7 @@ export default function Inventory({ inventory, onClose }: InventoryProps) {
         <p>Empty</p>
       ) : (
         <ul>
-          {inventory.map(item => (
+          {inventory.map((item: InventoryItem) => (
             <li key={item.id}>
               {item.icon.href} {item.name}: {item.quantity} (Price: {item.price})
             </li>
