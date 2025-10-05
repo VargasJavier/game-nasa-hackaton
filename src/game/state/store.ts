@@ -21,6 +21,9 @@ type GameState = {
     plantTutorialCompleted: boolean;
     weatherTutorialCompleted: boolean;
     finalTutorialCompleted: boolean;
+    selectedRegion: string;
+    selectedDistrict: string;
+    playerName: string;
 
     nextTurn: () => void;
     setAction: (a:GameState["selectedAction"]) => void;
@@ -33,6 +36,9 @@ type GameState = {
     setPlantTutorialCompleted: (completed: boolean) => void;
     setWeatherTutorialCompleted: (completed: boolean) => void;
     setFinalTutorialCompleted: (completed: boolean) => void;
+    setSelectedRegion: (region: string) => void;
+    setSelectedDistrict: (district: string) => void;
+    setPlayerName: (name: string) => void;
     reset: () => void;
 };
 
@@ -64,6 +70,9 @@ export const useGame = create<GameState>((set, get) => ({
     plantTutorialCompleted: false,
     weatherTutorialCompleted: false,
     finalTutorialCompleted: false,
+    selectedRegion: "",
+    selectedDistrict: "",
+    playerName: "",
 
    setAction: (a)=> set({selectedAction:a}),
    setTutorialShown: (shown)=> set({tutorialShown: shown}),
@@ -72,8 +81,11 @@ export const useGame = create<GameState>((set, get) => ({
    setSeedTutorialCompleted: (completed)=> set({seedTutorialCompleted: completed}),
    setCloseShopTutorialCompleted: (completed)=> set({closeShopTutorialCompleted: completed}),
    setPlantTutorialCompleted: (completed)=> set({plantTutorialCompleted: completed}),
-   setWeatherTutorialCompleted: (completed)=> set({weatherTutorialCompleted: completed}),
-   setFinalTutorialCompleted: (completed)=> set({finalTutorialCompleted: completed}),
+    setWeatherTutorialCompleted: (completed)=> set({weatherTutorialCompleted: completed}),
+    setFinalTutorialCompleted: (completed)=> set({finalTutorialCompleted: completed}),
+    setSelectedRegion: (region)=> set({selectedRegion: region}),
+    setSelectedDistrict: (district)=> set({selectedDistrict: district}),
+    setPlayerName: (name)=> set({playerName: name}),
   actOnTile: (id)=>{
     const { grid, selectedAction, res } = get();
     const t = grid.find(g=>g.id===id)!;
@@ -149,6 +161,9 @@ export const useGame = create<GameState>((set, get) => ({
       closeShopTutorialCompleted: false,
       plantTutorialCompleted: false,
       weatherTutorialCompleted: false,
-      finalTutorialCompleted: false
+      finalTutorialCompleted: false,
+      selectedRegion: "",
+      selectedDistrict: "",
+      playerName: ""
     })
 }));

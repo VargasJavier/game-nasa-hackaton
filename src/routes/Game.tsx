@@ -64,16 +64,16 @@ const RIVER_CENTER_X = RIVER_X + RIVER_WIDTH / 2;
 const RIVER_CENTER_Y = 450; // scene height 630
 
 export default function Game() {
-  // jugador
-  const [pos, setPos] = useState({ x: 360, y: 430 });
-  const posRef = useRef(pos);
-  const keys = useRef<Record<string, boolean>>({});
-  const raf = useRef<number | null>(null);
-  const last = useRef<number>(performance.now());
-  const [frameFarmer, setFrameFarmer] = useState(ASSETS.farmerIdle)
-  const [facingRight, setFacingRight] = useState(false);
-  const facingRightRef = useRef(facingRight);
-  useEffect(() => { facingRightRef.current = facingRight; }, [facingRight]);
+   // jugador
+   const [pos, setPos] = useState({ x: 360, y: 430 });
+   const posRef = useRef(pos);
+   const keys = useRef<Record<string, boolean>>({});
+   const raf = useRef<number | null>(null);
+   const last = useRef<number>(performance.now());
+   const [frameFarmer, setFrameFarmer] = useState(ASSETS.farmerIdle)
+   const [facingRight, setFacingRight] = useState(false);
+   const facingRightRef = useRef(facingRight);
+   useEffect(() => { facingRightRef.current = facingRight; }, [facingRight]);
 
   // recursos y clima
   const [waterTanks, setWaterTanks] = useState<number[]>([0]); // start with 1 tank
@@ -310,6 +310,9 @@ export default function Game() {
   const setWeatherTutorialCompleted = useGame(state => state.setWeatherTutorialCompleted);
   const finalTutorialCompleted = useGame(state => state.finalTutorialCompleted);
   const setFinalTutorialCompleted = useGame(state => state.setFinalTutorialCompleted);
+  const playerName = useGame(state => state.playerName);
+  const setPlayerName = useGame(state => state.setPlayerName);
+  const selectedDistrict = useGame(state => state.selectedDistrict);
 
   // useEffect(() => {
   //   const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -328,7 +331,7 @@ export default function Game() {
   return (
     <>
       <div className="background">
-        <div className="title-banner">F4F - Month {turn}</div>
+        <div className="title-banner">{playerName} - Month {turn}</div>
         <button className="exit-btn" onClick={() => { if (window.confirm("¿Estás seguro de que quieres salir? Perderás tu progreso.")) { nav("/"); } }}>Salir</button>
       </div>
       <div className="scene">
@@ -370,7 +373,7 @@ export default function Game() {
 
         <Shop currency={currency} setCurrency={setCurrency} inventory={inventory} setInventory={setInventory} numPlots={numPlots} setNumPlots={setNumPlots} waterTanks={waterTanks} setWaterTanks={setWaterTanks} plots={plots} setPlots={setPlots} decorations={decorations} setDecorations={setDecorations} show={showShop} onClose={() => setShowShop(false)} onSeedBought={() => setSeedTutorialCompleted(true)} seedTutorialCompleted={seedTutorialCompleted} />
 
-        <ClimatePanel currentTurn={turn} currentForecast={forecast} onExpand={() => setWeatherTutorialCompleted(true)} isWeatherTutorialActive={plantTutorialCompleted && !weatherTutorialCompleted} />
+        <ClimatePanel currentTurn={turn} currentForecast={forecast} onExpand={() => setWeatherTutorialCompleted(true)} isWeatherTutorialActive={plantTutorialCompleted && !weatherTutorialCompleted} selectedDistrict={selectedDistrict} />
 
         {/* Rio */}
         <img src={riverImage} alt="River" className={`river ${isNearRiver ? "focus" : ""}`} style={{ left: RIVER_X, bottom: RIVER_Y, width: RIVER_WIDTH, height: RIVER_HEIGHT }} />
@@ -462,11 +465,11 @@ export default function Game() {
           <p>You have a limit of 5 actions per month.</p>
           <p>You can skip the month with the Skip Time button at the top.</p>
           <p>Get luck.</p>
-          <button 
+          <button
           onClick={() => {
-            setFinalTutorialCompleted(true); 
+            setFinalTutorialCompleted(true);
           }
-          }>finish the tutorial</button>
+          }>Finish the tutorial</button>
         </div>
       )}
     </>

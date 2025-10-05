@@ -8,13 +8,14 @@ interface Forecast {
 }
 
 interface ClimatePanelProps {
-  currentTurn: number;
-  currentForecast?: { mm: number; label: string } | null;
-  onExpand?: () => void;
-  isWeatherTutorialActive?: boolean;
+   currentTurn: number;
+   currentForecast?: { mm: number; label: string } | null;
+   onExpand?: () => void;
+   isWeatherTutorialActive?: boolean;
+   selectedDistrict?: string;
 }
 
-const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecast, onExpand, isWeatherTutorialActive }) => {
+const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecast, onExpand, isWeatherTutorialActive, selectedDistrict }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [forecasts, setForecasts] = useState<Forecast[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
@@ -114,6 +115,7 @@ const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecas
               <div className="status-icons">🛜 📶 🔋</div>
             </div>
             <div className="phone-screen">
+              {selectedDistrict && <div className="district-info">District: {selectedDistrict}</div>}
               <div className="forecast-list">
                 {forecasts.map((forecast, index) => (
                   <div key={index} className="forecast-item">
