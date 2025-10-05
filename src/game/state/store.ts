@@ -2,7 +2,7 @@ import { create } from "zustand";
 import type {
   Forecast, Inventory, Plot, Player, SeedRef, Stage
 } from "../../game/core/types";
-import { INTERACT_RADIUS, PLAYER, SCENE } from "../../game/core/constants";
+import { INTERACT_RADIUS, PLAYER, SCENE, RIVER_POSITION, MAX_TANK_CAPACITY } from "../../game/core/constants";
 import { rollForecast } from "../../game/core/rules";
 
 // export type PlotStage = 0|1|2|3|4|5; // 0 suelo, 1 brote… 5 dorado/cosecha
@@ -64,6 +64,7 @@ type GameState = {
   grid: Tile[];
   res: Resources;
   weather: Weather;
+  isNearRiver: boolean;
   drought: boolean;
   selectedAction: "plant" | "water" | "harvest" | null;
 
@@ -139,6 +140,7 @@ type GameState = {
   toggleShop(): void;
   toggleControls(): void;
 
+  setIsNearRiver: (isNearRiver: boolean) => void;
   setWaterTanks: (next: number[] | ((prev: number[]) => number[])) => void;
   addWaterTank: (value: number) => void;
   clearWaterTanks: () => void;
@@ -175,6 +177,7 @@ export const useGame = create<GameState>((set, get) => ({
   selectedAction: null,
   resources: { waterTanks: [0], currency: 100000, turn: 1 },
   numPlots: 1,
+  isNearRiver: false,
   decorations: [],
   inventory: [
     { id:"seed1", name:"Corn Seed", type:"seed", quantity:5, price:10, icon:{ type:"emoji", href:"🌽" } },
@@ -212,6 +215,8 @@ export const useGame = create<GameState>((set, get) => ({
 
   clearWaterTanks: () =>
     set(state => ({ resources: { ...state.resources, waterTanks: [] } })),
+
+  setIsNearRiver: isNearRiver => set({isNearRiver: isNearRiver}),
 
   setPlots: next =>
     set(state => {
@@ -371,41 +376,56 @@ export const useGame = create<GameState>((set, get) => ({
   },
 
   irrigate() {
-    // 1) lee TODO una vez
-    const { nearestId, plots, resources } = get();
+    const { isNearRiver, setRiverTutorialCompleted, setPlantTutorialCompleted, player, plots, resources, setWaterTanks, updatePlot } = get();
+    if (isNearRiver) setRiverTutorialCompleted(true);
 
-    const id = nearestId?.();
-    if (!id) return;
+    const playerCenter = { x: player.x + player.w / 2, y: player.y + player.h / 2 };
+    const riverDist = dist(playerCenter.x, playerCenter.y, RIVER_POSITION.x, RIVER_POSITION.y);
 
-    const plotIndex = plots.findIndex(p => p.id === id);
-    if (plotIndex < 0) return;
+    // Check if near river and fill tank
+    if (riverDist <= 162) {
+      const fillIndex = resources.waterTanks.findIndex(t => t < MAX_TANK_CAPACITY);
+      if (fillIndex !== -1) {
+        setWaterTanks(prev => {
+          const newTanks = [...prev];
+          newTanks[fillIndex] = Math.min(MAX_TANK_CAPACITY, newTanks[fillIndex] + 1);
+          return newTanks;
+        });
+      }
+    }
 
-    const target = plots[plotIndex];
-    if (target.stage < 2) return;
+    // Check for nearest irrigable plot
+    let nearestPlot: Plot | null = null;
+    let minDist = Infinity;
+    for (const p of plots) {
+      console.log('PLOT', p)
+      if (p.stage === 0 || p.isIrrigated) continue;
+      const plotCenter = { x: p.x + 36, y: p.y + 36 };
+      const d = dist(playerCenter.x, playerCenter.y, plotCenter.x, plotCenter.y);
+      console.log('DIST', d)
+      if (d <= 30 && d < minDist) {
+        minDist = d;
+        nearestPlot = p;
+      }
+    }
 
-    const tankIndex = resources.waterTanks.findIndex(v => v > 0);
-    if (tankIndex === -1) return;
-
-    const nextMoisture = clamp01(target.moisture + MOISTURE_IRRIGATION_DELTA);
-    if (nextMoisture === target.moisture && target.isIrrigated) return;
-
-    // 2) ahora sí, una sola escritura
-    set(state => {
-      const nextTanks = state.resources.waterTanks.slice();
-      nextTanks[tankIndex] = Math.max(0, nextTanks[tankIndex] - 1);
-
-      const nextPlots = state.plots.slice();
-      nextPlots[plotIndex] = {
-        ...state.plots[plotIndex],
-        moisture: nextMoisture,
-        isIrrigated: true
-      };
-
-      return {
-        resources: { ...state.resources, waterTanks: nextTanks },
-        plots: nextPlots
-      };
-    });
+    if (nearestPlot) {
+      const tankIndex = resources.waterTanks.findIndex(t => t > 0);
+      console.log('RESOURCES', resources)
+      console.log('TANK INDEX', tankIndex)
+      if (tankIndex !== -1) {
+        setPlantTutorialCompleted(true)
+        setWaterTanks(prev => {
+          const newTanks = [...prev];
+          newTanks[tankIndex] = Math.max(0, newTanks[tankIndex] - 1);
+          return newTanks;
+        });
+        updatePlot(nearestPlot.id, {
+          moisture: clamp01(nearestPlot.moisture + MOISTURE_IRRIGATION_DELTA),
+          isIrrigated: true
+        });
+      }
+    }
   },
   
   nextTurn: ()=>{
@@ -470,7 +490,18 @@ export const useGame = create<GameState>((set, get) => ({
   setCurrency(v){ set(s => ({ resources: { ...s.resources, currency: v } })); },
   setDecorations(ids){ set({ decorations: ids }); },
 
-  toggleShop(){ set(s => ({ showShop: !s.showShop })); },
+  toggleShop() {
+
+    const {showShop, shopTutorialCompleted, closeShopTutorialCompleted, setShopTutorialCompleted, setCloseShopTutorialCompleted} = get()
+
+    if (!showShop && !shopTutorialCompleted) {
+          setShopTutorialCompleted(true);
+        } else if (!closeShopTutorialCompleted) {
+          console.log("close shop");
+          setCloseShopTutorialCompleted(true);
+    }
+    set(s => ({ showShop: !s.showShop }));
+  },
   toggleControls(){ set(s => ({ showControls: !s.showControls })); },
   reset: ()=> set({
     grid: makeGrid(),

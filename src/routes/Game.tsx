@@ -36,6 +36,7 @@ export default function Game() {
     plots,
     decorations,
     inventory,
+    setIsNearRiver,
     tutorialShown,
     riverTutorialCompleted,
     shopTutorialCompleted,
@@ -117,7 +118,7 @@ export default function Game() {
         <ClimatePanel currentTurn={resources.turn} currentForecast={forecast} onExpand={() => setWeatherTutorialCompleted(true)} isWeatherTutorialActive={plantTutorialCompleted && !weatherTutorialCompleted} />
 
         {/* Pronóstico */}
-        <River forecast={forecast} player={player} />
+        <River forecast={forecast} player={player} setIsNearRiver={setIsNearRiver} />
         
         {/* Rio */}
         <img src={riverImage} alt="River" className={`river ${isNearRiver ? "focus" : ""}`} style={{ left: RIVER_X, bottom: RIVER_Y, width: RIVER_WIDTH, height: RIVER_HEIGHT }} />

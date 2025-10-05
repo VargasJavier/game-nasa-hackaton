@@ -20,8 +20,7 @@ export type SeedIcon =
   | { type: "img"; href: string };
 
 export type InventoryItem =
-  | { id: string; name: string; type: "seed"; quantity: number; price: number; icon: SeedIcon }
-  | { id: string; name: string; type: "crop"; quantity: number; price: number; icon: SeedIcon };
+  { id: string; name: string; type: string; quantity: number; price: number; icon: SeedIcon }
 
 export type Inventory = InventoryItem[];
 

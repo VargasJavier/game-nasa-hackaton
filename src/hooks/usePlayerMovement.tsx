@@ -13,6 +13,8 @@ export const usePlayerMovement = () => {
     nextTurn,
     toggleShop,
     cycleSeed,
+    tutorialShown,
+    setTutorialShown,
     // showControls,
     toggleControls
   } = useGame();
@@ -26,8 +28,14 @@ export const usePlayerMovement = () => {
     // attach once; handlers will read latest state via refs
     const down = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
-      if (["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","e","r","n","i","escape","tab"].includes(k)) e.preventDefault();
+      if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", "e", "r", "n", "i", "escape", "tab"].includes(k)) {
+        e.preventDefault();
+      }
       keys.current[k] = true;
+
+      if (!tutorialShown && ["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d"].includes(k)) {
+          setTutorialShown(true);
+      }
 
       switch (k) {
         case "e": plant(); break;
