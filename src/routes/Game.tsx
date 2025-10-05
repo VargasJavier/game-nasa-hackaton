@@ -12,10 +12,14 @@ import texture4 from "../assets/icons/FarmLandOnTopvariant2.png"
 import texture5 from "../assets/icons/FarmLandOnTopvariant1.png"
 import texture6 from "../assets/icons/FarmLandOnTopvariant2.png"
 import stageIrrigate from "../assets/icons/WoodTexture2.png" // placeholder for irrigate image
+import riverImg from '../assets/icons/river.webp'
+import lowerRiverImg from '../assets/icons/lowerRiiver.webp'
+import dryRiverImg from '../assets/icons/dryRiiver.webp'
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import type { Inventory } from "../game/core/types";
 import Shop from "../components/Shop";
+import ClimatePanel from "../components/ClimatePanel";
 
 /** ---------------------------
  *  Config rápida de “assets”
@@ -50,12 +54,12 @@ type Plot = {
 const PLAYER = { w: 65, h: 105, speed: 250 };
 
 // Rio coordinates
-const RIVER_X = -50;
-const RIVER_Y = 100; // bottom
-const RIVER_WIDTH = 200;
-const RIVER_HEIGHT = 200;
+const RIVER_X = -150;
+const RIVER_Y = 0; // bottom
+const RIVER_WIDTH = 390;
+const RIVER_HEIGHT = 650;
 const RIVER_CENTER_X = RIVER_X + RIVER_WIDTH / 2;
-const RIVER_CENTER_Y = 630 - RIVER_Y - RIVER_HEIGHT / 2; // scene height 630
+const RIVER_CENTER_Y = 450; // scene height 630
 
 export default function Game() {
   // jugador
@@ -86,7 +90,7 @@ export default function Game() {
   const isNearRiver = useMemo(() => {
     const playerCenterX = pos.x + PLAYER.w / 2;
     const playerCenterY = pos.y + PLAYER.h / 2;
-    return dist(playerCenterX, playerCenterY, RIVER_CENTER_X, RIVER_CENTER_Y) < 100;
+    return dist(playerCenterX, playerCenterY, RIVER_CENTER_X, RIVER_CENTER_Y) < 200;
   }, [pos]);
 
   // debug: show player coordinates and nearest plot in console when they change
@@ -242,16 +246,18 @@ export default function Game() {
   }
 
   function collectWater() {
-    setWaterTanks(tanks => {
-      const newTanks = [...tanks];
-      for (let i = 0; i < newTanks.length; i++) {
-        if (newTanks[i] < 10) {
-          newTanks[i] += 1;
-          break;
+    if (forecastRef.current.label !== 'seca') {
+      setWaterTanks(tanks => {
+        const newTanks = [...tanks];
+        for (let i = 0; i < newTanks.length; i++) {
+          if (newTanks[i] < 10) {
+            newTanks[i] += 1;
+            break;
+          }
         }
-      }
-      return newTanks;
-    });
+        return newTanks;
+      });
+    }
   }
 
   function nextTurn() {
@@ -265,11 +271,23 @@ export default function Game() {
 
   const nav = useNavigate();
 
+  // useEffect(() => {
+  //   const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+  //     e.returnValue = "¿Estás seguro de que quieres recargar o cambiar de página? Perderás tu progreso.";
+  //   };
+  //   window.addEventListener('beforeunload', handleBeforeUnload);
+  //   return () => {
+  //     window.removeEventListener('beforeunload', handleBeforeUnload);
+  //   };
+  // }, []);
+
+  const riverImage = forecast.label === 'fuerte' || forecast.label === 'moderada' ? riverImg : forecast.label === 'ligera' ? lowerRiverImg : dryRiverImg;
+
   return (
     <>
       <div className="background">
-        <div className="title-banner">Farm4Future - Day {turn}</div>
-        <button className="exit-btn" onClick={() => nav("/")}>Salir</button>
+        <div className="title-banner">F4F - Month {turn}</div>
+        <button className="exit-btn" onClick={() => { if (window.confirm("¿Estás seguro de que quieres salir? Perderás tu progreso.")) { nav("/"); } }}>Salir</button>
       </div>
       <div className="scene">
         {/* HUD - Now shows inventory */}
@@ -310,14 +328,10 @@ export default function Game() {
 
         <Shop currency={currency} setCurrency={setCurrency} inventory={inventory} setInventory={setInventory} numPlots={numPlots} setNumPlots={setNumPlots} waterTanks={waterTanks} setWaterTanks={setWaterTanks} plots={plots} setPlots={setPlots} decorations={decorations} setDecorations={setDecorations} show={showShop} onClose={() => setShowShop(false)} />
 
-        {/* Pronóstico */}
-        <div className="rain-panel">
-          <div className="rain-ico" data-level={forecast.label} />
-          <div className="rain-label">Rain: {forecast.label} ({forecast.mm.toFixed(1)}mm)</div>
-        </div>
+        <ClimatePanel currentTurn={turn} currentForecast={forecast} />
 
         {/* Rio */}
-        <div className={`river ${isNearRiver ? "focus" : ""}`} style={{ left: RIVER_X, bottom: RIVER_Y, width: RIVER_WIDTH, height: RIVER_HEIGHT }} />
+        <img src={riverImage} alt="River" className={`river ${isNearRiver ? "focus" : ""}`} style={{ left: RIVER_X, bottom: RIVER_Y, width: RIVER_WIDTH, height: RIVER_HEIGHT }} />
 
         {/* Tanques de agua */}
         <div className="tank-container">
@@ -356,7 +370,7 @@ export default function Game() {
 
         {/* decorativos */}
         <div className="decorative">
-          {decorations.map((dec, i) => (
+          {decorations.map((_, i) => (
             <div key={i} className="tree">
               <img src={ASSETS.tree} alt="Decoration" width={70}/>
             </div>
