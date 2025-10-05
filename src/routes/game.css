@@ -2,7 +2,7 @@
   --grass:#2fa45f; --grass2:#2aa15a; --shadow:#1d703f;
   --panel2:#133f26;
   --earth:#8b5a3c; --earth-d:#6d422b; --leaf:#32c15a; --leaf-d:#1e8a3c;
-  --water:#75cfd4; --water-d:#57b3bb; --stroke:#0d2b1a;
+  --water:#75cfd4ad; --water-d:#57b3bb; --stroke:#0d2b1a;
   --scene-width:1024px; --scene-height:630px;
 }
 .background{
@@ -15,8 +15,8 @@
 }
 .scene{
   position:relative; width: var(--scene-width); height: var(--scene-height);
-  margin: 0 auto; background:
-  radial-gradient(1200px 700px at 70% 0%, var(--grass) 0%, var(--grass2) 70%);
+  margin: 0 auto; 
+  background-image: url("../assets/icons/soil.png");
   image-rendering: pixelated; overflow:hidden;
 }
 
@@ -152,19 +152,170 @@
     radial-gradient(circle at 8px 8px, #4a7acc 7px, transparent 8px) 44px 0/24px 24px;
 }
 .rain-label{ margin-top:8px; font-weight:700; }
+/* Climate Panel (Phone Simulation) */
+.climate-panel {
+  position: absolute;
+  top: 24px;
+  right: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 50;
+}
+
+.climate-panel.tutorial-active {
+  z-index: 2500;
+}
+
+.climate-panel.collapsed {
+  width: 145px;
+  height: auto;
+  min-height: 48px;
+  font-size: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.climate-panel.expanded {
+  width: 300px;
+  height: 480px;
+}
+
+.collapsed-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.current-climate {
+  font-size: 2rem;
+    text-align: center;
+    font-weight: bold;
+    background: var(--water);
+    padding: 5px 13px;
+    border-radius: 10px;
+    color: var(--tile);
+}
+
+.phone-icon {
+  text-shadow: 1px 1px 5px #000000;
+}
+
+.phone-simulation {
+  width: 100%;
+  height: 100%;
+}
+
+.phone-frame {
+  width: 100%;
+  height: inherit;
+  background: #000;
+  border-radius: 20px;
+  padding: 10px;
+  box-sizing: border-box;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.phone-power-button {
+  margin: auto;
+  font-size: 2rem;
+}
+
+.phone-status-bar {
+  height: 30px;
+  background: #333;
+  border-radius: 10px 10px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 12px;
+  color: #fff;
+}
+
+.status-time {
+  font-weight: bold;
+}
+
+.status-icons {
+  display: flex;
+  gap: 5px;
+}
+
+.phone-screen {
+  height: calc(100% - 30px);
+  background: #f0f0f0;
+  border-radius: 0 0 10px 10px;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.forecast-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.forecast-item {
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  gap: 5px;
+}
+
+.forecast-item div {
+  flex: 1;
+}
+
+.forecast-month {
+  font-weight: bold;
+  color: #333;
+}
+
+.forecast-rain {
+  display: flex;
+  flex-direction: column;
+}
+
+.forecast-climate {
+  font-size: 15px;
+  color: var(--tile);
+  display: flex;
+  text-align: center;
+  align-items: center;
+}
+.forecast-climate span:first-child {
+      font-size: 1.5rem;
+}
+
+.forecast-rainfall {
+  font-weight: bold;
+  color: #007bff;
+  text-align: center;
+}
+
+.forecast-extra {
+  color: var(--tile);
+  width: 90px;
+  text-align: end;
+}
 
 /* Rio */
 .river {
   position: absolute;
-  left: -142px;
-  bottom: -70px;
-  width: 550px;
-  height: 380px;
-  background: radial-gradient(circle at 40% 60%, var(--water) 60%, var(--water-d) 100%);
-  border: 4px solid var(--water-d);
-  border-radius: 5% 93% 0% 89% / 4% 82% 16% 100%;
+  border-radius: 50px; /* simplified */
   box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.15), inset 0 0 40px rgba(0, 0, 0, 0.25);
   background-size: 200% 200%;
+}
+.river.focus {
+  filter: brightness(1.2);
 }
 
 
@@ -251,7 +402,7 @@
 
 /* Jugador */
 .player{
-  position:absolute; left: 360px; top: 430px; width: 38px; height: 48px;
+  position:absolute; 
 }
 
 /* Parcelas 3x3 */
@@ -272,9 +423,7 @@
   display:grid; place-items:center;
 }
 .plot.focus{
-  /* highlight when player is over this plot */
-  border: 3px solid #ffffff;
-  box-shadow: 0 6px 0 rgba(255,255,255,0.15), 0 0 8px rgba(255,255,255,0.07);
+  filter: brightness(1.2);
 }
 .sprout{
   width: 34px; height: 26px; background: var(--leaf);
@@ -292,11 +441,15 @@
 }
 
 .player {
-  width: 65px;
-  height: 105px;
+  width: fit-content;
+  height: fit-content;
   transition: transform 0.06s linear;
   will-change: transform;
   z-index: 5;
+}
+
+.player.tutorial {
+  z-index: 2050;
 }
 
 /* Shop modal */
@@ -312,7 +465,7 @@
   padding: 20px;
   box-shadow: 0 10px 20px rgba(0,0,0,0.5);
   color: var(--text);
-  z-index: 1000;
+  z-index: 2000;
   max-width: 800px;
   width: 700px;
   transform: translateY(-100%);
@@ -375,6 +528,22 @@
   cursor: not-allowed;
 }
 
+.seed-tutorial {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  z-index: 10;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+}
+
 .backpack-btn {
   background: var(--grass);
   border: 2px solid var(--grass2);
@@ -384,4 +553,24 @@
   cursor: pointer;
   font-size: 24px;
   margin: 5px;
+}
+
+/* Tutorial modal */
+.tutorial-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  color: white;
+  font-size: 24px;
+  text-align: center;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
 }

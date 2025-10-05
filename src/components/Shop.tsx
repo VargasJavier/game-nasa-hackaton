@@ -16,6 +16,8 @@ interface ShopProps {
   setDecorations: (d: string[]) => void;
   show: boolean;
   onClose: () => void;
+  onSeedBought?: () => void;
+  seedTutorialCompleted: boolean;
 }
 
 export default function Shop({ currency, setCurrency, inventory, setInventory, numPlots, setNumPlots, waterTanks, setWaterTanks, plots, setPlots, decorations, setDecorations, show, onClose }: ShopProps) {
@@ -128,6 +130,9 @@ export default function Shop({ currency, setCurrency, inventory, setInventory, n
         } else {
           setInventory([...inventory, { ...item, quantity: 1 }]);
         }
+        if (item.type === 'seed') {
+          onSeedBought?.();
+        }
       }
     }
   };
@@ -183,6 +188,7 @@ export default function Shop({ currency, setCurrency, inventory, setInventory, n
             </div>
           ))}
         </div>
+        {!seedTutorialCompleted && <div className="seed-tutorial">Buy the first seed.</div>}
       </div>
     </div>
   );
