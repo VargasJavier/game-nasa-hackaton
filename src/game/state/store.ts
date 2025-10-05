@@ -77,6 +77,9 @@ type GameState = {
   plantTutorialCompleted: boolean;
   weatherTutorialCompleted: boolean;
   finalTutorialCompleted: boolean;
+    selectedRegion: string;
+    selectedDistrict: string;
+    playerName: string;
 
   // plots
   setPlots: (next: Plot[] | ((prev: Plot[]) => Plot[])) => void;
@@ -145,6 +148,9 @@ type GameState = {
   addWaterTank: (value: number) => void;
   clearWaterTanks: () => void;
 
+    setSelectedRegion: (region: string) => void;
+    setSelectedDistrict: (district: string) => void;
+    setPlayerName: (name: string) => void;
   reset: () => void;
 };
 
@@ -196,6 +202,9 @@ export const useGame = create<GameState>((set, get) => ({
   plantTutorialCompleted: false,
   weatherTutorialCompleted: false,
   finalTutorialCompleted: false,
+    selectedRegion: "",
+    selectedDistrict: "",
+    playerName: "",
 
   // reemplaza SOLO waterTanks, dejando currency/turn intactos
   setWaterTanks: next =>
@@ -516,6 +525,9 @@ export const useGame = create<GameState>((set, get) => ({
     closeShopTutorialCompleted: false,
     plantTutorialCompleted: false,
     weatherTutorialCompleted: false,
-    finalTutorialCompleted: false
+    finalTutorialCompleted: false,
+      selectedRegion: "",
+      selectedDistrict: "",
+      playerName: ""
   })
 }));

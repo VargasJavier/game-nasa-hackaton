@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Inventory, Item } from '../game/core/types';
+import { useGame } from '../game/state/store';
 
 interface ShopProps {
   currency: number;
@@ -21,6 +22,30 @@ interface ShopProps {
 }
 
 export default function Shop({ currency, setCurrency, inventory, setInventory, numPlots, setNumPlots, waterTanks, setWaterTanks, plots, setPlots, decorations, setDecorations, show, onClose, onSeedBought, seedTutorialCompleted }: ShopProps) {
+  const selectedDistrict = useGame(state => state.selectedDistrict);
+
+  const districtModifiers: Record<string, Record<string, number>> = {
+    'Trujillo': { 'seed1': 2, 'seed2': -1, 'seed3': 1 },
+    'Ascope': { 'seed1': 1, 'seed2': 2, 'seed3': -1 },
+    'Pacasmayo': { 'seed1': -1, 'seed2': 1, 'seed3': 2 },
+    'Chepen': { 'seed1': 2, 'seed2': -1, 'seed3': 1 },
+    'Virú': { 'seed1': 1, 'seed2': 2, 'seed3': -1 },
+    'Sánchez Carrión': { 'seed1': -1, 'seed2': 1, 'seed3': 2 },
+    'Gran Chimú': { 'seed1': 2, 'seed2': -1, 'seed3': 1 },
+    'Otuzco': { 'seed1': 1, 'seed2': 2, 'seed3': -1 },
+    'Julcán': { 'seed1': -1, 'seed2': 1, 'seed3': 2 },
+    'Santiago de Chuco': { 'seed1': 2, 'seed2': -1, 'seed3': 1 },
+    'Bolívar': { 'seed1': 1, 'seed2': 2, 'seed3': -1 },
+    'Pataz': { 'seed1': -1, 'seed2': 1, 'seed3': 2 },
+  };
+
+  const getModifierText = (itemId: string) => {
+    if (!selectedDistrict || !districtModifiers[selectedDistrict]) return '';
+    const mod = districtModifiers[selectedDistrict][itemId];
+    if (mod === undefined) return '';
+    return ` (${mod > 0 ? '+' : ''}${mod})`;
+  };
+
   const availableItems: Item[] = [
     {
       id: 'seed1',
@@ -196,7 +221,7 @@ export default function Shop({ currency, setCurrency, inventory, setInventory, n
             }
             return (
               <div className='shop-item' key={item.id}>
-                {item.icon.href} {item.name}{maxText} - {item.price} <button onClick={() => buyItem(item)} disabled={disabled}>Buy</button>
+                {item.icon.href} {item.name}{getModifierText(item.id)}{maxText} - {item.price} <button onClick={() => buyItem(item)} disabled={disabled}>Buy</button>
               </div>
             );
           })}

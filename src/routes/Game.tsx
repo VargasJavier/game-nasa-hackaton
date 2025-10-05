@@ -115,7 +115,7 @@ export default function Game() {
           seedTutorialCompleted={seedTutorialCompleted} />
 
         {/* Climate panel */}
-        <ClimatePanel currentTurn={resources.turn} currentForecast={forecast} onExpand={() => setWeatherTutorialCompleted(true)} isWeatherTutorialActive={plantTutorialCompleted && !weatherTutorialCompleted} />
+        <ClimatePanel currentTurn={resources.turn} currentForecast={forecast} onExpand={() => setWeatherTutorialCompleted(true)} isWeatherTutorialActive={plantTutorialCompleted && !weatherTutorialCompleted} selectedDistrict={selectedDistrict} />
 
         {/* Pronóstico */}
         <River forecast={forecast} player={player} setIsNearRiver={setIsNearRiver} />
@@ -175,11 +175,11 @@ export default function Game() {
           <p>You have a limit of 5 actions per month.</p>
           <p>You can skip the month with the Skip Time button at the top.</p>
           <p>Get luck.</p>
-          <button 
+          <button
           onClick={() => {
-            setFinalTutorialCompleted(true); 
+            setFinalTutorialCompleted(true);
           }
-          }>finish the tutorial</button>
+          }>Finish the tutorial</button>
         </div>
       )}
       </div>
