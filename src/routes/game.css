@@ -91,8 +91,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 4px 0;
-  font-size: 14px;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+.inventory-item.selected-seed {
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
 }
 .hud-row{ display:flex; align-items:center; gap:10px; margin:10px 0; }
 .hud-row .ico{ font-size:24px; filter:saturate(1.2); }
@@ -163,7 +170,11 @@
 
 /* Tanques de agua */
 .tank-container{
-  position: absolute; right:24px; bottom:24px; width: 410px; height: 140px;
+  position: absolute;
+  right:24px;
+  bottom:24px;
+  width: 410px;
+  height: 140px;
   border-top: none;
   /* borde solo para dimensionar */
   border: 1px solid black;

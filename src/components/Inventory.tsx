@@ -17,7 +17,7 @@ export default function Inventory({ inventory, onClose }: InventoryProps) {
         <ul>
           {inventory.map(item => (
             <li key={item.id}>
-              {item.icon} {item.name}: {item.quantity} (Price: {item.price})
+              {item.icon.href} {item.name}: {item.quantity} (Price: {item.price})
             </li>
           ))}
         </ul>

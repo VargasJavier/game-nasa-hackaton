@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Inventory } from '../game/core/types';
+import type { Inventory, Item } from '../game/core/types';
 
 interface ShopProps {
   currency: number;
@@ -19,14 +19,77 @@ interface ShopProps {
 }
 
 export default function Shop({ currency, setCurrency, inventory, setInventory, numPlots, setNumPlots, waterTanks, setWaterTanks, plots, setPlots, decorations, setDecorations, show, onClose }: ShopProps) {
-  const availableItems = [
-    { id: 'seed1', name: 'Corn Seed', type: 'seed' as const, price: 10, icon: '🌽' },
-    { id: 'seed2', name: 'Wheat Seed', type: 'seed' as const, price: 15, icon: '🌾' },
-    { id: 'seed3', name: 'Carrot Seed', type: 'seed' as const, price: 12, icon: '🥕' },
-    { id: 'plot', name: 'Plot', type: 'plot' as const, price: 50, icon: '🌱' },
-    { id: 'tank', name: 'Water Tank', type: 'tank' as const, price: 30, icon: '🪣' },
-    { id: 'tree', name: 'Jungle Tree', type: 'decorative' as const, price: 25, icon: '🌳' },
-    { id: 'bush', name: 'Bush', type: 'decorative' as const, price: 20, icon: '🌿' },
+  const availableItems: Item[] = [
+    {
+      id: 'seed1',
+      name: 'Corn Seed',
+      type: 'seed',
+      price: 10,
+      icon: {
+        type: 'emoji',
+        href: '🌽'
+      }
+    },
+    {
+      id: 'seed2',
+      name: 'Wheat Seed',
+      type: 'seed',
+      price: 15,
+      icon: {
+        type: 'emoji',
+        href: '🌾'
+      }
+    },
+    {
+      id: 'seed3',
+      name: 'Carrot Seed',
+      type: 'seed',
+      price: 12,
+      icon: {
+        type: 'emoji',
+        href: '🥕'
+      }
+    },
+    {
+      id: 'plot',
+      name: 'Plot',
+      type: 'plot',
+      price: 50,
+      icon: {
+        type: 'emoji',
+        href: '🌱'
+      }
+    },
+    {
+      id: 'tank',
+      name: 'Water Tank',
+      type: 'tank',
+      price: 30,
+      icon: {
+        type: 'emoji',
+        href: '🪣'
+      }
+    },
+    {
+      id: 'tree',
+      name: 'Jungle Tree',
+      type: 'decorative',
+      price: 25,
+      icon: {
+        type: 'emoji',
+        href: '🌳'
+      }
+    },
+    {
+      id: 'bush',
+      name: 'Bush',
+      type: 'decorative',
+      price: 20,
+      icon: {
+        type: 'emoji',
+        href: '🌿'
+      }
+    },
   ];
 
   const buyItem = (item: typeof availableItems[0]) => {
@@ -107,7 +170,7 @@ export default function Shop({ currency, setCurrency, inventory, setInventory, n
             }
             return (
               <div className='shop-item' key={item.id}>
-                {item.icon} {item.name}{maxText} - {item.price} <button onClick={() => buyItem(item)} disabled={disabled}>Buy</button>
+                {item.icon.href} {item.name}{maxText} - {item.price} <button onClick={() => buyItem(item)} disabled={disabled}>Buy</button>
               </div>
             );
           })}
@@ -116,7 +179,7 @@ export default function Shop({ currency, setCurrency, inventory, setInventory, n
           <h4>Sell</h4>
           {inventory.filter(i => i.type === 'crop').map(item => (
             <div className='shop-item' key={item.id}>
-              {item.icon} {item.name}: {item.quantity} - {item.price} each <button onClick={() => sellItem(item.id)}>Sell</button>
+              {item.icon.href} {item.name}: {item.quantity} - {item.price} each <button onClick={() => sellItem(item.id)}>Sell</button>
             </div>
           ))}
         </div>

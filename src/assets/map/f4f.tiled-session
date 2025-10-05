@@ -1,0 +1,69 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "map.png",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "file.lastUsedOpenFilter": "Todos los archivos (*)",
+    "fileStates": {
+        "F4F Fencer Style Game.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "F4F Grass Style Game.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "F4F Road Style Game.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "F4F Seed Style Game.tsx": {
+            "scaleInDock": 2,
+            "scaleInEditor": 1
+        },
+        "F4F Tree Style Game.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "map.png": {
+            "scale": 1.35375,
+            "selectedLayer": 3,
+            "viewCenter": {
+                "x": 320.2216066481994,
+                "y": 120.03693444136658
+            }
+        }
+    },
+    "last.imagePath": "C:/Users/jabo9/Downloads/Farm RPG FREE 16x16 - Tiny Asset Pack/Farm RPG FREE 16x16 - Tiny Asset Pack/Objects",
+    "map.height": 15,
+    "map.lastUsedFormat": "tmx",
+    "map.tileHeight": 16,
+    "map.tileWidth": 16,
+    "map.width": 40,
+    "openFiles": [
+        "F4F Grass Style Game.tsx",
+        "F4F Fencer Style Game.tsx",
+        "F4F Road Style Game.tsx",
+        "F4F Seed Style Game.tsx",
+        "F4F Tree Style Game.tsx",
+        "map.png"
+    ],
+    "project": "f4f.tiled-project",
+    "recentFiles": [
+        "F4F Grass Style Game.tsx",
+        "F4F Fencer Style Game.tsx",
+        "F4F Road Style Game.tsx",
+        "F4F Seed Style Game.tsx",
+        "F4F Tree Style Game.tsx",
+        "map.png"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
+}
