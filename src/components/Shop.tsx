@@ -20,7 +20,7 @@ interface ShopProps {
   seedTutorialCompleted: boolean;
 }
 
-export default function Shop({ currency, setCurrency, inventory, setInventory, numPlots, setNumPlots, waterTanks, setWaterTanks, plots, setPlots, decorations, setDecorations, show, onClose }: ShopProps) {
+export default function Shop({ currency, setCurrency, inventory, setInventory, numPlots, setNumPlots, waterTanks, setWaterTanks, plots, setPlots, decorations, setDecorations, show, onClose, onSeedBought, seedTutorialCompleted }: ShopProps) {
   const availableItems: Item[] = [
     {
       id: 'seed1',
@@ -94,59 +94,80 @@ export default function Shop({ currency, setCurrency, inventory, setInventory, n
     },
   ];
 
-  const buyItem = (item: typeof availableItems[0]) => {
-    if (currency >= item.price) {
-      setCurrency(currency - item.price);
-      if (item.type === 'plot') {
-        if (numPlots < 9) {
-          setNumPlots(numPlots + 1);
-          // add new plot
-          const cols = 3;
-          const r = Math.floor(numPlots / cols);
-          const c = numPlots % cols;
-          const origin = { x: 350, y: 250 };
-          const newPlot = {
-            x: origin.x + c * 86,
-            y: origin.y + r * 86,
-            stage: 0,
-            moisture: 0.25,
-            alive: true,
-          };
-          setPlots([...plots, newPlot]);
-        }
-      } else if (item.type === 'tank') {
-        if (waterTanks.length < 10) {
-          setWaterTanks([...waterTanks, 0]);
-        }
-      } else if (item.type === 'decorative') {
-        if (!decorations.includes(item.id)) {
-          setDecorations([...decorations, item.id]);
-        }
-      } else {
-        const existing = inventory.find(i => i.id === item.id && i.type === item.type);
-        if (existing) {
-          existing.quantity += 1;
-          setInventory([...inventory]);
-        } else {
-          setInventory([...inventory, { ...item, quantity: 1 }]);
-        }
-        if (item.type === 'seed') {
-          onSeedBought?.();
-        }
+  const buyItem = (item: Item) => {
+    // limits: ensure purchase is possible before deducting currency
+    if (item.type === 'plot' && numPlots >= 9) return;
+    if (item.type === 'tank' && waterTanks.length >= 10) return;
+    if (item.type === 'decorative' && decorations.includes(item.id)) return;
+    if (currency < item.price) return;
+
+    // deduct currency
+    setCurrency(currency - item.price);
+
+    if (item.type === 'plot') {
+      const index = numPlots;
+      const cols = 3;
+      const r = Math.floor(index / cols);
+      const c = index % cols;
+      const origin = { x: 350, y: 250 };
+      const newPlot = {
+        x: origin.x + c * 86,
+        y: origin.y + r * 86,
+        stage: 0,
+        moisture: 0.25,
+        alive: true,
+      };
+      setNumPlots(numPlots + 1);
+      setPlots([...plots, newPlot]);
+      return;
+    }
+
+    if (item.type === 'tank') {
+      setWaterTanks([...waterTanks, 0]);
+      return;
+    }
+
+    if (item.type === 'decorative') {
+      if (!decorations.includes(item.id)) {
+        setDecorations([...decorations, item.id]);
       }
+      return;
+    }
+
+    // seeds and other inventory items
+    const existing = inventory.find(i => i.id === item.id && i.type === item.type);
+    if (existing) {
+      const newInv = inventory.map(i => (i.id === existing.id && i.type === existing.type ? { ...i, quantity: i.quantity + 1 } : i));
+      setInventory(newInv as Inventory);
+    } else {
+      setInventory([
+        ...inventory,
+        {
+          id: item.id,
+          name: item.name,
+          type: item.type as 'seed',
+          quantity: 1,
+          price: item.price,
+          icon: item.icon,
+        },
+      ] as Inventory);
+    }
+
+    if (item.type === 'seed') {
+      onSeedBought?.();
     }
   };
 
   const sellItem = (itemId: string) => {
     const item = inventory.find(i => i.id === itemId && i.type === 'crop');
-    if (item && item.quantity > 0) {
-      setCurrency(currency + item.price);
-      item.quantity -= 1;
-      if (item.quantity === 0) {
-        setInventory(inventory.filter(i => i !== item));
-      } else {
-        setInventory([...inventory]);
-      }
+    if (!item || item.quantity <= 0) return;
+
+    setCurrency(currency + item.price);
+
+    if (item.quantity === 1) {
+      setInventory(inventory.filter(i => !(i.id === itemId && i.type === 'crop')) as Inventory);
+    } else {
+      setInventory(inventory.map(i => (i.id === itemId && i.type === 'crop' ? { ...i, quantity: i.quantity - 1 } : i)) as Inventory);
     }
   };
 

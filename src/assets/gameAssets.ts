@@ -1,17 +1,27 @@
-import farmer from '../assets/icons/farmer.png'
-import farmerInvert from '../assets/icons/farmerInvert.png'
-import tree from '../assets/icons/JungleTree.png'
-import texture1 from "../assets/icons/WoodTexture1.png"
-import texture2 from "../assets/icons/WoodTexture2.png"
-import texture3 from "../assets/icons/FarmLandOnTopvariant1.png"
-import texture4 from "../assets/icons/FarmLandOnTopvariant2.png"
-import texture5 from "../assets/icons/FarmLandOnTopvariant1.png"
-import texture6 from "../assets/icons/FarmLandOnTopvariant2.png"
-import stageIrrigate from "../assets/icons/WoodTexture2.png" // placeholder for irrigate image
+import farmer from './icons/farmer.png'
+import farmerInvert from './icons/farmerInvert.png'
+import farmerWalk from './icons/farmerWalk.gif'
+import farmerWalkInvert from './icons/farmerWalkInvert.gif'
+import tree from './icons/JungleTree.png'
+import texture1 from "./icons/WoodTexture1.png"
+import texture2 from "./icons/WoodTexture2.png"
+import texture3 from "./icons/FarmLandOnTopvariant1.png"
+import texture4 from "./icons/FarmLandOnTopvariant2.png"
+import texture5 from "./icons/FarmLandOnTopvariant1.png"
+import texture6 from "./icons/FarmLandOnTopvariant2.png"
+import riverImg from './icons/river.webp'
+import lowerRiverImg from './icons/lowerRiiver.webp'
+import dryRiverImg from './icons/dryRiiver.webp'
+import stageIrrigate from "./icons/WoodTexture2.png" // placeholder for irrigate image
 
 const ASSETS = {
+  riverImg: riverImg,
+  lowerRiverImg: lowerRiverImg,
+  dryRiverImg: dryRiverImg,
   farmerIdle: farmer,
   farmerIdleInvert: farmerInvert,
+  farmerWalk: farmerWalk,
+  farmerWalkInvert: farmerWalkInvert,
   tree: tree,
   plotStages: [
     texture1, // tierra

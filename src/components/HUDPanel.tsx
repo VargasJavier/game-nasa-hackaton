@@ -2,6 +2,7 @@ import React from 'react';
 import { useInventory } from '../hooks/useInventory';
 import { useGame } from '../game/state/store';
 import type { InventoryItem } from '../game/core/types';
+import TurnCounter from './HUD/TurnCounter';
 
 interface HUDPanelProps {
   showControls: boolean;
@@ -10,7 +11,7 @@ interface HUDPanelProps {
 
 export const HUDPanel: React.FC<HUDPanelProps> = ({ showControls, setShowControls }) => {
   const { seeds, crops, selectedSeedId, selectSeed } = useInventory();
-  const { resources, toggleShop } = useGame();
+  const { resources, toggleShop, nextTurn } = useGame();
 
   const handleSeedSelect = (seed: InventoryItem) => {
     console.log('SEED SELECTED: ', seed.id);
@@ -19,6 +20,7 @@ export const HUDPanel: React.FC<HUDPanelProps> = ({ showControls, setShowControl
 
   return (
     <div className="hud-panel">
+      <TurnCounter currentTurn={resources.turn} onNextTurn={nextTurn} />
       <div className="hud-section">
         <h4>Seeds</h4>
         {seeds.map(item => (
@@ -33,6 +35,8 @@ export const HUDPanel: React.FC<HUDPanelProps> = ({ showControls, setShowControl
             {item.icon.href} {item.name}: {item.quantity}
           </div>
         ))}
+
+        
       </div>
       <div className="hud-section">
         <h4>Crops</h4>
@@ -45,7 +49,7 @@ export const HUDPanel: React.FC<HUDPanelProps> = ({ showControls, setShowControl
       <div className="hud-section">
         <div className="hud-row">
           <span className="ico">💧</span>
-          <span className="val">{resources.waterTanks.reduce((a, b) => a + b, 0)}</span>
+          <span className="val">{resources.waterTanks.reduce((a: number, b: number) => a + b, 0)}</span>
         </div>
         <div className="hud-row">
           <span className="ico">🪙</span>

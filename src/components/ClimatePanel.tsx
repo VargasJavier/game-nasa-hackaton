@@ -1,23 +1,12 @@
 import React, { useState, useEffect } from 'react';
-
-interface Forecast {
-  mm: number;
-  label: 'seca' | 'ligera' | 'moderada' | 'fuerte';
-  temperature: number;
-  humidity: number;
-}
-
-interface ClimatePanelProps {
-  currentTurn: number;
-  currentForecast?: { mm: number; label: string } | null;
-  onExpand?: () => void;
-  isWeatherTutorialActive?: boolean;
-}
+import { useGame } from "../game/state/store";
 
 const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecast, onExpand, isWeatherTutorialActive }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [forecasts, setForecasts] = useState<Forecast[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+
+  const fc = useGame(s => s.forecast);
 
   // Function to generate forecast (copied from Game.tsx)
   const rollForecast = (month: number): Forecast => {
@@ -134,7 +123,7 @@ const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecas
         // Collapsed view: Phone icon
         <div className="collapsed-content">
           {currentForecast && (
-            <div className="current-climate">
+            <div className="current-climate" data-level={fc.label} >
               {getWeatherIcon(currentForecast.label)}<br></br> {getWeatherDescription(currentForecast.label)}
             </div>
           )}
@@ -145,14 +134,4 @@ const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecas
   );
 };
 
-export default ClimatePanel;import React from "react";
-import { useGame } from "../game/state/store";
-export default function ClimatePanel(){
-  const fc = useGame(s => s.forecast);
-  return (
-    <div className="rain-panel">
-      <div className="rain-ico" data-level={fc.label} />
-      <div className="rain-label">Rain: {fc.label} ({fc.mm.toFixed(1)}mm)</div>
-    </div>
-  );
-}
+export default ClimatePanel

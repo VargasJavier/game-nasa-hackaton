@@ -71,7 +71,7 @@ export const usePlayerMovement = () => {
     return () => { if (raf.current) cancelAnimationFrame(raf.current); };
   }, [move, face]);
 
-  const frameFarmer = player.facing === "left" ? ASSETS.farmerIdle : ASSETS.farmerIdleInvert;
+  const frameFarmer = player.facing === "left" ? ASSETS.farmerWalk : ASSETS.farmerWalkInvert;
 
   return {
     player,

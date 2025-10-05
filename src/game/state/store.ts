@@ -3,7 +3,7 @@ import type {
   Forecast, Inventory, Plot, Player, SeedRef, Stage
 } from "../../game/core/types";
 import { INTERACT_RADIUS, PLAYER, SCENE } from "../../game/core/constants";
-import { rollForecast, stepGrowth, ndviProxy } from "../../game/core/rules";
+import { rollForecast } from "../../game/core/rules";
 
 // export type PlotStage = 0|1|2|3|4|5; // 0 suelo, 1 brote… 5 dorado/cosecha
 export type PlotStage = 0|1; // 0 suelo, 1 brote… 5 dorado/cosecha
@@ -77,6 +77,11 @@ type GameState = {
   weatherTutorialCompleted: boolean;
   finalTutorialCompleted: boolean;
 
+  // plots
+  setPlots: (next: Plot[] | ((prev: Plot[]) => Plot[])) => void;
+  updatePlot: (id: string, patch: Partial<Plot> | ((p: Plot) => Plot)) => void;
+  resetPlots: (n: number) => void;
+
   // recursos / meta
   resources: { waterTanks: number[]; currency: number; turn: number };
   numPlots: number;
@@ -90,7 +95,7 @@ type GameState = {
   showShop: boolean;
   showControls: boolean;
 
-    // selectors
+  // selectors
   nearestId(): string | null;
 
   // actions
@@ -100,8 +105,6 @@ type GameState = {
   selectSeed(id: string): void;
   cycleSeed(): void;
 
-  setAction: (a:GameState["selectedAction"]) => void;
-  actOnTile: (id: number) => void;
   setTutorialShown: (shown: boolean) => void;
   setRiverTutorialCompleted: (completed: boolean) => void;
   setShopTutorialCompleted: (completed: boolean) => void;
@@ -110,7 +113,7 @@ type GameState = {
   setPlantTutorialCompleted: (completed: boolean) => void;
   setWeatherTutorialCompleted: (completed: boolean) => void;
   setFinalTutorialCompleted: (completed: boolean) => void;
-    plant(): void;                   // si stage 0: siembra; 1-4: crecimiento forzado; 5: cosecha
+  plant(): void;                   // si stage 0: siembra; 1-4: crecimiento forzado; 5: cosecha
   harvest(id: string): void;
   irrigate(): void;                // gasta 1 del primer tanque con agua, +humedad y marca irrigado
   nextTurn(): void;                // aplica lluvia y evap, limpia isIrrigated
@@ -124,10 +127,9 @@ type GameState = {
   setDecorations(ids: string[]): void;
   toggleShop(): void;
   toggleControls(): void;
-  reset: () => void;
 
   nextTurn: () => void;
-    setAction: (a:GameState["selectedAction"]) => void;
+  setAction: (a:GameState["selectedAction"]) => void;
   actOnTile: (id: number) => void;
   
   // utilidades para Shop (si la usas)
@@ -137,15 +139,11 @@ type GameState = {
   toggleShop(): void;
   toggleControls(): void;
 
-    setTutorialShown: (shown: boolean) => void;
-    setRiverTutorialCompleted: (completed: boolean) => void;
-    setShopTutorialCompleted: (completed: boolean) => void;
-    setSeedTutorialCompleted: (completed: boolean) => void;
-    setCloseShopTutorialCompleted: (completed: boolean) => void;
-    setPlantTutorialCompleted: (completed: boolean) => void;
-    setWeatherTutorialCompleted: (completed: boolean) => void;
-    setFinalTutorialCompleted: (completed: boolean) => void;
-    reset: () => void;
+  setWaterTanks: (next: number[] | ((prev: number[]) => number[])) => void;
+  addWaterTank: (value: number) => void;
+  clearWaterTanks: () => void;
+
+  reset: () => void;
 };
 
 const makeGrid = (cols=3, rows=3, origin={x:520,y:390}, size=72, gap=14): Tile[] =>
@@ -161,6 +159,9 @@ const nextForecast = ():Weather => {
   if (p>0.25) return {label:"Llovizna", rainMm:0.5+Math.random()*1.5, prob:p};
   return {label:"Seco", rainMm:0, prob:p};
 };
+
+const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
+const MOISTURE_IRRIGATION_DELTA = 0.25;
 
 export const useGame = create<GameState>((set, get) => ({
   player: { x: 360, y: 430, w: PLAYER.w, h: PLAYER.h, facing: "right" },
@@ -192,6 +193,49 @@ export const useGame = create<GameState>((set, get) => ({
   plantTutorialCompleted: false,
   weatherTutorialCompleted: false,
   finalTutorialCompleted: false,
+
+  // reemplaza SOLO waterTanks, dejando currency/turn intactos
+  setWaterTanks: next =>
+    set(state => {
+      const prev = state.resources.waterTanks;
+      const value = typeof next === "function" ? (next as (p: number[]) => number[])(prev) : next;
+      // micro-optimización: si no cambia la referencia, no rompas nada
+      if (value === prev) return state;
+      return { resources: { ...state.resources, waterTanks: value } };
+    }),
+
+  // utilidades comunes
+  addWaterTank: value =>
+    set(state => ({
+      resources: { ...state.resources, waterTanks: [...state.resources.waterTanks, value] }
+    })),
+
+  clearWaterTanks: () =>
+    set(state => ({ resources: { ...state.resources, waterTanks: [] } })),
+
+  setPlots: next =>
+    set(state => {
+      const prev = state.plots;
+      const value = typeof next === "function" ? (next as (p: Plot[]) => Plot[])(prev) : next;
+      if (value === prev) return state;               // sin cambios, no re-render
+      return { plots: value };
+    }),
+
+  // 2) Actualizar UNA parcela por id, inmutable y sin recrear todo por deporte
+  updatePlot: (id, patch) =>
+    set(state => {
+      const i = state.plots.findIndex(p => p.id === id);
+      if (i < 0) return state;                        // id inexistente, no rompas nada
+      const curr = state.plots[i];
+      const next = typeof patch === "function" ? (patch as (p: Plot) => Plot)(curr) : { ...curr, ...patch };
+      if (next === curr) return state;                // nada cambió
+      const copy = state.plots.slice();
+      copy[i] = next;
+      return { plots: copy };
+  }),
+
+  // 3) Recrear el tablero rápido
+  resetPlots: n => set({ plots: makePlots(n) }),
 
   /* selectors */
   nearestId() { return nearestPlotId(get().player, get().plots); },
@@ -237,56 +281,14 @@ export const useGame = create<GameState>((set, get) => ({
     }
   },
 
-  nextTurn: ()=>{
-    const { grid, res, weather, drought } = get();
-    // recarga acuífero si llueve
-    const aquiferGain = weather.rainMm > 3 ? 2 : weather.rainMm>0 ? 1 : 0;
-    const newAquifer = Math.min(100, res.aquifer + aquiferGain);
-
-    // actualizar cada parcela
-    const nextGrid = grid.map(t=>{
-      // evapotranspiración
-      const evap = drought ? 0.08 : 0.05;
-      let moisture = Math.max(0, Math.min(1, t.moisture - evap + weather.rainMm/50));
-
-      // crecimiento si hay cultivo
-      let stage = t.stage;
-      if (t.hasCrop) {
-        if (moisture >= 0.3 && moisture <= 0.8) {
-          // incrementar hasta el máximo de la etapa (0|1)
-          stage = Math.min(1, stage + 1) as PlotStage;
-        } else if (moisture < 0.15) {
-          // decrementar hasta el mínimo (0)
-          stage = Math.max(0, stage - 1) as PlotStage;
-        }
-      }
-  return {...t, moisture, stage};
-    });
-
-    // nueva predicción y sequía aleatoria
-    const nw = nextForecast();
-    const ndrought = Math.random()<0.12 ? true : Math.random()<0.6 ? drought : false;
-
-    // sostenibilidad y resiliencia de forma simple
-    const sost = res.score.sost + (weather.rainMm>0 && res.water<90 ? 1 : 0);
-    const alive = nextGrid.some(t=>t.hasCrop);
-    const resil = res.score.res + (alive ? 1 : 0);
-
-    set({
-      grid: nextGrid,
-      res: { water: res.water, aquifer: newAquifer, turns: res.turns+1, score:{prod:res.score.prod, sost, res:resil} },
-      weather: nw,
-      drought: ndrought
-    });
-  },
   setTutorialShown: (shown)=> set({tutorialShown: shown}),
-   setRiverTutorialCompleted: (completed)=> set({riverTutorialCompleted: completed}),
-   setShopTutorialCompleted: (completed)=> set({shopTutorialCompleted: completed}),
-   setSeedTutorialCompleted: (completed)=> set({seedTutorialCompleted: completed}),
-   setCloseShopTutorialCompleted: (completed)=> set({closeShopTutorialCompleted: completed}),
-   setPlantTutorialCompleted: (completed)=> set({plantTutorialCompleted: completed}),
-   setWeatherTutorialCompleted: (completed)=> set({weatherTutorialCompleted: completed}),
-   setFinalTutorialCompleted: (completed)=> set({finalTutorialCompleted: completed}),
+  setRiverTutorialCompleted: (completed)=> set({riverTutorialCompleted: completed}),
+  setShopTutorialCompleted: (completed)=> set({shopTutorialCompleted: completed}),
+  setSeedTutorialCompleted: (completed)=> set({seedTutorialCompleted: completed}),
+  setCloseShopTutorialCompleted: (completed)=> set({closeShopTutorialCompleted: completed}),
+  setPlantTutorialCompleted: (completed)=> set({plantTutorialCompleted: completed}),
+  setWeatherTutorialCompleted: (completed)=> set({weatherTutorialCompleted: completed}),
+  setFinalTutorialCompleted: (completed)=> set({finalTutorialCompleted: completed}),
 /* siembra/crecimiento/cosecha como en tu versión larga */
   plant(){
     const id = get().nearestId();
@@ -368,51 +370,95 @@ export const useGame = create<GameState>((set, get) => ({
     }));
   },
 
-  irrigate(){
-    const id = get().nearestId();
+  irrigate() {
+    // 1) lee TODO una vez
+    const { nearestId, plots, resources } = get();
+
+    const id = nearestId?.();
     if (!id) return;
-    const target = get().plots.find(p => p.id===id)!;
-    // igual que tu condición: no riegues etapas muy tempranas
+
+    const plotIndex = plots.findIndex(p => p.id === id);
+    if (plotIndex < 0) return;
+
+    const target = plots[plotIndex];
     if (target.stage < 2) return;
 
-    const total = get().resources.waterTanks.reduce((a,b)=>a+b,0);
-    if (total<=0) return;
+    const tankIndex = resources.waterTanks.findIndex(v => v > 0);
+    if (tankIndex === -1) return;
 
-    set(s => {
-      const waterTanks = [...s.resources.waterTanks];
-      for (let i=0;i<waterTanks.length;i++){
-        if (waterTanks[i] > 0){ waterTanks[i] = Math.max(0, waterTanks[i]-1); break; }
-      }
+    const nextMoisture = clamp01(target.moisture + MOISTURE_IRRIGATION_DELTA);
+    if (nextMoisture === target.moisture && target.isIrrigated) return;
+
+    // 2) ahora sí, una sola escritura
+    set(state => {
+      const nextTanks = state.resources.waterTanks.slice();
+      nextTanks[tankIndex] = Math.max(0, nextTanks[tankIndex] - 1);
+
+      const nextPlots = state.plots.slice();
+      nextPlots[plotIndex] = {
+        ...state.plots[plotIndex],
+        moisture: nextMoisture,
+        isIrrigated: true
+      };
+
       return {
-        resources: { ...s.resources, waterTanks },
-        plots: s.plots.map(p => p.id===id
-          ? { ...p, moisture: Math.min(1, p.moisture + 0.25), isIrrigated: true }
-          : p
-        )
+        resources: { ...state.resources, waterTanks: nextTanks },
+        plots: nextPlots
       };
     });
   },
+  
+  nextTurn: ()=>{
+    const { grid, res, weather, drought } = get();
+    // recarga acuífero si llueve
+    const aquiferGain = weather.rainMm > 3 ? 2 : weather.rainMm>0 ? 1 : 0;
+    const newAquifer = Math.min(100, res.aquifer + aquiferGain);
 
-  nextTurn(){
-    set(s => {
-      const newPlots = s.plots.map(p => stepGrowth(p, s.forecast)); // stepGrowth ya limpia isIrrigated
-      const ndvi = ndviProxy(newPlots);
-      const rainRecharge = s.forecast.mm >= 5 ? 2 : 0;
+    // actualizar cada parcela
+    const nextGrid = grid.map(t=>{
+      // evapotranspiración
+      const evap = drought ? 0.08 : 0.05;
+      let moisture = Math.max(0, Math.min(1, t.moisture - evap + weather.rainMm/50));
 
-      const waterTanks = [...s.resources.waterTanks];
-      if (rainRecharge>0){
-        if (waterTanks.length===0) waterTanks.push(0);
-        waterTanks[0] = Math.min(10, waterTanks[0] + rainRecharge);
+      // crecimiento si hay cultivo
+      let stage = t.stage;
+      if (t.hasCrop) {
+        if (moisture >= 0.3 && moisture <= 0.8) {
+          // incrementar hasta el máximo de la etapa (0|1)
+          stage = Math.min(1, stage + 1) as PlotStage;
+        } else if (moisture < 0.15) {
+          // decrementar hasta el mínimo (0)
+          stage = Math.max(0, stage - 1) as PlotStage;
+        }
       }
+  return {...t, moisture, stage};
+    });
 
-      return {
-        plots: newPlots,
-        ndvi,
-        resources: { ...s.resources, waterTanks, turn: s.resources.turn + 1 },
-        forecast: rollForecast()
-      };
+    // nueva predicción y sequía aleatoria
+    const nw = nextForecast();
+    const ndrought = Math.random()<0.12 ? true : Math.random()<0.6 ? drought : false;
+
+    // sostenibilidad y resiliencia de forma simple
+    const sost = res.score.sost + (weather.rainMm>0 && res.water<90 ? 1 : 0);
+    const alive = nextGrid.some(t=>t.hasCrop);
+    const resil = res.score.res + (alive ? 1 : 0);
+
+    set({
+      grid: nextGrid,
+      res: { water: res.water, aquifer: newAquifer, turns: res.turns+1, score:{prod:res.score.prod, sost, res:resil} },
+      weather: nw,
+      drought: ndrought
     });
   },
+
+  rollForecast(){
+    const r = Math.random();
+    if (r > .7) return { mm: 8 + Math.random()*8, label: "fuerte" as const };
+    if (r > .4) return { mm: 3 + Math.random()*3, label: "moderada" as const };
+    if (r > .2) return { mm: 0.5 + Math.random()*1.5, label: "ligera" as const };
+    return { mm: 0, label: "seca" as const };
+  },
+
   setNumPlots(n){
     set(() => ({ numPlots: n, plots: makePlots(n) }));
   },
@@ -431,6 +477,14 @@ export const useGame = create<GameState>((set, get) => ({
     res: { water:100, aquifer:60, turns:1, score:{prod:0,sost:0,res:0} },
     weather: nextForecast(),
     drought:false,
-    selectedAction:null
+    selectedAction:null,
+    tutorialShown: false,
+    riverTutorialCompleted: false,
+    shopTutorialCompleted: false,
+    seedTutorialCompleted: false,
+    closeShopTutorialCompleted: false,
+    plantTutorialCompleted: false,
+    weatherTutorialCompleted: false,
+    finalTutorialCompleted: false
   })
 }));
