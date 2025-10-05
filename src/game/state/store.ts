@@ -8,16 +8,32 @@ type Weather = { label:string; rainMm:number; prob:number; };
 type Resources = { water:number; aquifer:number; turns:number; score:{prod:number;sost:number;res:number} };
 
 type GameState = {
-  grid: Tile[];
-  res: Resources;
-  weather: Weather;
-  drought: boolean;
-  selectedAction: "plant" | "water" | "harvest" | null;
+    grid: Tile[];
+    res: Resources;
+    weather: Weather;
+    drought: boolean;
+    selectedAction: "plant" | "water" | "harvest" | null;
+    tutorialShown: boolean;
+    riverTutorialCompleted: boolean;
+    shopTutorialCompleted: boolean;
+    seedTutorialCompleted: boolean;
+    closeShopTutorialCompleted: boolean;
+    plantTutorialCompleted: boolean;
+    weatherTutorialCompleted: boolean;
+    finalTutorialCompleted: boolean;
 
-  nextTurn: () => void;
-  setAction: (a:GameState["selectedAction"]) => void;
-  actOnTile: (id:number) => void;
-  reset: () => void;
+    nextTurn: () => void;
+    setAction: (a:GameState["selectedAction"]) => void;
+    actOnTile: (id:number) => void;
+    setTutorialShown: (shown: boolean) => void;
+    setRiverTutorialCompleted: (completed: boolean) => void;
+    setShopTutorialCompleted: (completed: boolean) => void;
+    setSeedTutorialCompleted: (completed: boolean) => void;
+    setCloseShopTutorialCompleted: (completed: boolean) => void;
+    setPlantTutorialCompleted: (completed: boolean) => void;
+    setWeatherTutorialCompleted: (completed: boolean) => void;
+    setFinalTutorialCompleted: (completed: boolean) => void;
+    reset: () => void;
 };
 
 const makeGrid = (cols=3, rows=3, origin={x:520,y:390}, size=72, gap=14): Tile[] =>
@@ -35,13 +51,29 @@ const nextForecast = ():Weather => {
 };
 
 export const useGame = create<GameState>((set, get) => ({
-  grid: makeGrid(),
-  res: { water:100, aquifer:60, turns:1, score:{prod:0,sost:0,res:0} },
-  weather: nextForecast(),
-  drought: false,
-  selectedAction: null,
+    grid: makeGrid(),
+    res: { water:100, aquifer:60, turns:1, score:{prod:0,sost:0,res:0} },
+    weather: nextForecast(),
+    drought: false,
+    selectedAction: null,
+    tutorialShown: false,
+    riverTutorialCompleted: false,
+    shopTutorialCompleted: false,
+    seedTutorialCompleted: false,
+    closeShopTutorialCompleted: false,
+    plantTutorialCompleted: false,
+    weatherTutorialCompleted: false,
+    finalTutorialCompleted: false,
 
-  setAction: (a)=> set({selectedAction:a}),
+   setAction: (a)=> set({selectedAction:a}),
+   setTutorialShown: (shown)=> set({tutorialShown: shown}),
+   setRiverTutorialCompleted: (completed)=> set({riverTutorialCompleted: completed}),
+   setShopTutorialCompleted: (completed)=> set({shopTutorialCompleted: completed}),
+   setSeedTutorialCompleted: (completed)=> set({seedTutorialCompleted: completed}),
+   setCloseShopTutorialCompleted: (completed)=> set({closeShopTutorialCompleted: completed}),
+   setPlantTutorialCompleted: (completed)=> set({plantTutorialCompleted: completed}),
+   setWeatherTutorialCompleted: (completed)=> set({weatherTutorialCompleted: completed}),
+   setFinalTutorialCompleted: (completed)=> set({finalTutorialCompleted: completed}),
   actOnTile: (id)=>{
     const { grid, selectedAction, res } = get();
     const t = grid.find(g=>g.id===id)!;
@@ -105,10 +137,18 @@ export const useGame = create<GameState>((set, get) => ({
   },
 
   reset: ()=> set({
-    grid: makeGrid(),
-    res: { water:100, aquifer:60, turns:1, score:{prod:0,sost:0,res:0} },
-    weather: nextForecast(),
-    drought:false,
-    selectedAction:null
-  })
+      grid: makeGrid(),
+      res: { water:100, aquifer:60, turns:1, score:{prod:0,sost:0,res:0} },
+      weather: nextForecast(),
+      drought:false,
+      selectedAction:null,
+      tutorialShown: false,
+      riverTutorialCompleted: false,
+      shopTutorialCompleted: false,
+      seedTutorialCompleted: false,
+      closeShopTutorialCompleted: false,
+      plantTutorialCompleted: false,
+      weatherTutorialCompleted: false,
+      finalTutorialCompleted: false
+    })
 }));

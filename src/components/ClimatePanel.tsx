@@ -10,9 +10,11 @@ interface Forecast {
 interface ClimatePanelProps {
   currentTurn: number;
   currentForecast?: { mm: number; label: string } | null;
+  onExpand?: () => void;
+  isWeatherTutorialActive?: boolean;
 }
 
-const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecast }) => {
+const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecast, onExpand, isWeatherTutorialActive }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [forecasts, setForecasts] = useState<Forecast[]>([]);
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
@@ -71,7 +73,11 @@ const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecas
   }, []);
 
   const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
+    const newExpanded = !isExpanded;
+    setIsExpanded(newExpanded);
+    if (newExpanded && onExpand) {
+      onExpand();
+    }
   };
 
   const getWeatherIcon = (label: string) => {
@@ -96,7 +102,7 @@ const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecas
 
   return (
     <div
-      className={`climate-panel ${isExpanded ? 'expanded' : 'collapsed'}`}
+      className={`climate-panel ${isExpanded ? 'expanded' : 'collapsed'} ${isWeatherTutorialActive ? 'tutorial-active' : ''}`}
       onClick={toggleExpanded}
     >
       {isExpanded ? (

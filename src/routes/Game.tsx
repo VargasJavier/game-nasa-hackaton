@@ -20,6 +20,8 @@ import { useNavigate } from "react-router-dom";
 import type { Inventory } from "../game/core/types";
 import Shop from "../components/Shop";
 import ClimatePanel from "../components/ClimatePanel";
+import TurnCounter from "../components/HUD/TurnCounter";
+import { useGame } from "../game/state/store";
 
 /** ---------------------------
  *  Config rápida de “assets”
@@ -74,10 +76,10 @@ export default function Game() {
   useEffect(() => { facingRightRef.current = facingRight; }, [facingRight]);
 
   // recursos y clima
-  const [waterTanks, setWaterTanks] = useState<number[]>([0]); // start with 1 tank at full
+  const [waterTanks, setWaterTanks] = useState<number[]>([0]); // start with 1 tank
   const [numPlots, setNumPlots] = useState(1); // start with 1 plot
   const [turn, setTurn] = useState(1);
-  const [forecast, setForecast] = useState(() => rollForecast());
+  const [forecast, setForecast] = useState<{ mm: number; label: "fuerte" | "moderada" | "ligera" | "seca" }>(() => ({ mm: 0.5 + Math.random()*1.5, label: "ligera" as const }));
 
   // grid based on numPlots
   const [plots, setPlots] = useState<Plot[]>(() => makePlots(numPlots));
@@ -107,7 +109,6 @@ export default function Game() {
   useEffect(() => { forecastRef.current = forecast; }, [forecast]);
   const isNearRiverRef = useRef(isNearRiver);
   useEffect(() => { isNearRiverRef.current = isNearRiver; }, [isNearRiver]);
-
   // inventario y tienda
   const [currency, setCurrency] = useState(100000);
   const [inventory, setInventory] = useState<Inventory>([
@@ -116,6 +117,8 @@ export default function Game() {
   ]);
   const [decorations, setDecorations] = useState<string[]>([]); // owned decoration ids
   const [showShop, setShowShop] = useState(false);
+  const showShopRef = useRef(showShop);
+  useEffect(() => { showShopRef.current = showShop; }, [showShop]);
   const [showControls, setShowControls] = useState(false);
 
   /* ----------------- input ----------------- */
@@ -123,8 +126,12 @@ export default function Game() {
     // attach once; handlers will read latest state via refs
     const down = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
-      if (["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","e","r","n","i","escape"].includes(k)) e.preventDefault();
+      if (["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d","e","r","i","escape"].includes(k)) e.preventDefault();
       keys.current[k] = true;
+
+      if (!tutorialShown && ["arrowup","arrowdown","arrowleft","arrowright","w","a","s","d"].includes(k)) {
+        setTutorialShown(true);
+      }
 
       if (k === "arrowleft" || k === "a") setFacingRight(false);
       if (k === "arrowright" || k === "d") setFacingRight(true);
@@ -139,9 +146,17 @@ export default function Game() {
         } else {
           irrigate();
         }
-      } 
-      if (k === "n") nextTurn();
-      if (k === "escape") setShowShop(s => !s);
+      }
+      if (k === "escape") {
+        const wasOpen = showShopRef.current;
+        setShowShop(s => !s);
+        if (!wasOpen && !shopTutorialCompleted) {
+          setShopTutorialCompleted(true);
+        } else if (!closeShopTutorialCompleted) {
+          console.log("close shop");
+          setCloseShopTutorialCompleted(true);
+        }
+      }
     };
     const up = (e: KeyboardEvent) => { keys.current[e.key.toLowerCase()] = false; };
     window.addEventListener("keydown", down);
@@ -202,6 +217,9 @@ export default function Game() {
       } else {
         setInventory([...inventory]);
       }
+      if (!plantTutorialCompleted) {
+        setPlantTutorialCompleted(true);
+      }
     } else if (n.stage > 0 && n.stage < 5) {
       // allow manual advancement by 1 stage when pressing E on an already planted plot
       setPlots(ps => ps.map(p => {
@@ -247,16 +265,21 @@ export default function Game() {
 
   function collectWater() {
     if (forecastRef.current.label !== 'seca') {
+      let collected = false;
       setWaterTanks(tanks => {
         const newTanks = [...tanks];
         for (let i = 0; i < newTanks.length; i++) {
           if (newTanks[i] < 10) {
             newTanks[i] += 1;
+            collected = true;
             break;
           }
         }
         return newTanks;
       });
+      if (collected) {
+        setRiverTutorialCompleted(true);
+      }
     }
   }
 
@@ -271,6 +294,23 @@ export default function Game() {
 
   const nav = useNavigate();
 
+  const tutorialShown = useGame(state => state.tutorialShown);
+  const setTutorialShown = useGame(state => state.setTutorialShown);
+  const riverTutorialCompleted = useGame(state => state.riverTutorialCompleted);
+  const setRiverTutorialCompleted = useGame(state => state.setRiverTutorialCompleted);
+  const shopTutorialCompleted = useGame(state => state.shopTutorialCompleted);
+  const setShopTutorialCompleted = useGame(state => state.setShopTutorialCompleted);
+  const seedTutorialCompleted = useGame(state => state.seedTutorialCompleted);
+  const setSeedTutorialCompleted = useGame(state => state.setSeedTutorialCompleted);
+  const closeShopTutorialCompleted = useGame(state => state.closeShopTutorialCompleted);
+  const setCloseShopTutorialCompleted = useGame(state => state.setCloseShopTutorialCompleted);
+  const plantTutorialCompleted = useGame(state => state.plantTutorialCompleted);
+  const setPlantTutorialCompleted = useGame(state => state.setPlantTutorialCompleted);
+  const weatherTutorialCompleted = useGame(state => state.weatherTutorialCompleted);
+  const setWeatherTutorialCompleted = useGame(state => state.setWeatherTutorialCompleted);
+  const finalTutorialCompleted = useGame(state => state.finalTutorialCompleted);
+  const setFinalTutorialCompleted = useGame(state => state.setFinalTutorialCompleted);
+
   // useEffect(() => {
   //   const handleBeforeUnload = (e: BeforeUnloadEvent) => {
   //     e.returnValue = "¿Estás seguro de que quieres recargar o cambiar de página? Perderás tu progreso.";
@@ -280,6 +320,8 @@ export default function Game() {
   //     window.removeEventListener('beforeunload', handleBeforeUnload);
   //   };
   // }, []);
+
+
 
   const riverImage = forecast.label === 'fuerte' || forecast.label === 'moderada' ? riverImg : forecast.label === 'ligera' ? lowerRiverImg : dryRiverImg;
 
@@ -292,6 +334,7 @@ export default function Game() {
       <div className="scene">
         {/* HUD - Now shows inventory */}
         <div className="hud-panel">
+          <TurnCounter currentTurn={turn} onNextTurn={nextTurn} />
           <div className="hud-section">
             <h4>Seeds</h4>
             {inventory.filter(item => item.type === 'seed').map(item => (
@@ -314,21 +357,20 @@ export default function Game() {
           </div>
           <div className="hud-buttons">
             <button className="controls-btn" onClick={() => setShowControls(!showControls)}>Controls</button>
-            <button className="shop-btn" onClick={() => setShowShop(!showShop)}>Shop</button>
+            <button className="shop-btn" onClick={() => { setShowShop(s => !s);  }}>Shop</button>
           </div>
           {showControls && (
             <div className="controls-popup">
               <strong>E:</strong> Sow / Harvest / Collect Water<br/>
               <strong>R:</strong> Irrigate / Regar<br/>
-              <strong>N:</strong> Turn / Turno<br/>
               <strong>ESC:</strong> Shop
             </div>
           )}
         </div>
 
-        <Shop currency={currency} setCurrency={setCurrency} inventory={inventory} setInventory={setInventory} numPlots={numPlots} setNumPlots={setNumPlots} waterTanks={waterTanks} setWaterTanks={setWaterTanks} plots={plots} setPlots={setPlots} decorations={decorations} setDecorations={setDecorations} show={showShop} onClose={() => setShowShop(false)} />
+        <Shop currency={currency} setCurrency={setCurrency} inventory={inventory} setInventory={setInventory} numPlots={numPlots} setNumPlots={setNumPlots} waterTanks={waterTanks} setWaterTanks={setWaterTanks} plots={plots} setPlots={setPlots} decorations={decorations} setDecorations={setDecorations} show={showShop} onClose={() => setShowShop(false)} onSeedBought={() => setSeedTutorialCompleted(true)} seedTutorialCompleted={seedTutorialCompleted} />
 
-        <ClimatePanel currentTurn={turn} currentForecast={forecast} />
+        <ClimatePanel currentTurn={turn} currentForecast={forecast} onExpand={() => setWeatherTutorialCompleted(true)} isWeatherTutorialActive={plantTutorialCompleted && !weatherTutorialCompleted} />
 
         {/* Rio */}
         <img src={riverImage} alt="River" className={`river ${isNearRiver ? "focus" : ""}`} style={{ left: RIVER_X, bottom: RIVER_Y, width: RIVER_WIDTH, height: RIVER_HEIGHT }} />
@@ -346,7 +388,7 @@ export default function Game() {
         </div>
 
       {/* Jugador */}
-      <div className={`player ${nearest ? "near" : ""}`} style={{ left: pos.x, top: pos.y }}>
+      <div className={`player ${nearest ? "near" : ""} ${!finalTutorialCompleted ? "tutorial" : ""}`} style={{ left: pos.x, top: pos.y }}>
         {/* si tienes sprite, descomenta: */}
         <img src={frameFarmer} alt="Personaje" width={65}/>
       </div>
@@ -377,6 +419,56 @@ export default function Game() {
           ))}
         </div>
       </div>
+
+      {!tutorialShown && (
+        <div className="tutorial-modal">
+          Use WASD or arrow keys (↑ → ↓ ←) to move around the map.
+        </div>
+      )}
+
+      {tutorialShown && !riverTutorialCompleted && (
+        <div className="tutorial-modal">
+          Go to the river and press R to collect water.
+        </div>
+      )}
+
+      {riverTutorialCompleted && !shopTutorialCompleted && (
+        <div className="tutorial-modal">
+          Open the shop whit ESC.
+        </div>
+      )}
+
+      {seedTutorialCompleted && !closeShopTutorialCompleted && (
+        <div className="tutorial-modal zindex">
+          Close the shop whit ESC and go to the available plot.
+        </div>
+      )}
+
+      {closeShopTutorialCompleted && !plantTutorialCompleted && (
+        <div className="tutorial-modal">
+          Go to the plot and press E to plant and R to water.
+        </div>
+      )}
+
+      {plantTutorialCompleted && !weatherTutorialCompleted && (
+        <div className="tutorial-modal">
+          Clic on the phone to open
+        </div>
+      )}
+
+      {weatherTutorialCompleted && !finalTutorialCompleted && (
+        <div className="tutorial-modal">
+          <p>With the cell phone you can see the weather in the following months.</p>
+          <p>You have a limit of 5 actions per month.</p>
+          <p>You can skip the month with the Skip Time button at the top.</p>
+          <p>Get luck.</p>
+          <button 
+          onClick={() => {
+            setFinalTutorialCompleted(true); 
+          }
+          }>finish the tutorial</button>
+        </div>
+      )}
     </>
   );
 }

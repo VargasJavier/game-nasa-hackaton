@@ -155,6 +155,10 @@
   z-index: 50;
 }
 
+.climate-panel.tutorial-active {
+  z-index: 2500;
+}
+
 .climate-panel.collapsed {
   width: 145px;
   height: auto;
@@ -433,6 +437,10 @@
   z-index: 5;
 }
 
+.player.tutorial {
+  z-index: 2050;
+}
+
 /* Shop modal */
 .shop {    
   display: flex;
@@ -446,7 +454,7 @@
   padding: 20px;
   box-shadow: 0 10px 20px rgba(0,0,0,0.5);
   color: var(--text);
-  z-index: 1000;
+  z-index: 2000;
   max-width: 800px;
   width: 700px;
   transform: translateY(-100%);
@@ -509,6 +517,22 @@
   cursor: not-allowed;
 }
 
+.seed-tutorial {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  z-index: 10;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+}
+
 .backpack-btn {
   background: var(--grass);
   border: 2px solid var(--grass2);
@@ -518,4 +542,24 @@
   cursor: pointer;
   font-size: 24px;
   margin: 5px;
+}
+
+/* Tutorial modal */
+.tutorial-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  color: white;
+  font-size: 24px;
+  text-align: center;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
 }

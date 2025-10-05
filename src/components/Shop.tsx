@@ -16,9 +16,11 @@ interface ShopProps {
   setDecorations: (d: string[]) => void;
   show: boolean;
   onClose: () => void;
+  onSeedBought?: () => void;
+  seedTutorialCompleted: boolean;
 }
 
-export default function Shop({ currency, setCurrency, inventory, setInventory, numPlots, setNumPlots, waterTanks, setWaterTanks, plots, setPlots, decorations, setDecorations, show, onClose }: ShopProps) {
+export default function Shop({ currency, setCurrency, inventory, setInventory, numPlots, setNumPlots, waterTanks, setWaterTanks, plots, setPlots, decorations, setDecorations, show, onClose, onSeedBought, seedTutorialCompleted }: ShopProps) {
   const availableItems = [
     { id: 'seed1', name: 'Corn Seed', type: 'seed' as const, price: 10, icon: '🌽' },
     { id: 'seed2', name: 'Wheat Seed', type: 'seed' as const, price: 15, icon: '🌾' },
@@ -64,6 +66,9 @@ export default function Shop({ currency, setCurrency, inventory, setInventory, n
           setInventory([...inventory]);
         } else {
           setInventory([...inventory, { ...item, quantity: 1 }]);
+        }
+        if (item.type === 'seed') {
+          onSeedBought?.();
         }
       }
     }
@@ -120,6 +125,7 @@ export default function Shop({ currency, setCurrency, inventory, setInventory, n
             </div>
           ))}
         </div>
+        {!seedTutorialCompleted && <div className="seed-tutorial">Buy the first seed.</div>}
       </div>
     </div>
   );
