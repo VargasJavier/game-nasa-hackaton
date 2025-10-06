@@ -2,25 +2,6 @@ import React from 'react';
 import type { Inventory, Item } from '../game/core/types';
 import { useGame } from '../game/state/store';
 
-interface ShopProps {
-  currency: number;
-  setCurrency: (c: number) => void;
-  inventory: Inventory;
-  setInventory: (inv: Inventory) => void;
-  numPlots: number;
-  setNumPlots: (n: number) => void;
-  waterTanks: number[];
-  setWaterTanks: (t: number[]) => void;
-  plots: any[]; // Plot[]
-  setPlots: (p: any[]) => void;
-  decorations: string[];
-  setDecorations: (d: string[]) => void;
-  show: boolean;
-  onClose: () => void;
-  onSeedBought?: () => void;
-  seedTutorialCompleted: boolean;
-}
-
 export default function Shop({ currency, setCurrency, inventory, setInventory, numPlots, setNumPlots, waterTanks, setWaterTanks, plots, setPlots, decorations, setDecorations, show, onClose, onSeedBought, seedTutorialCompleted }: ShopProps) {
   const selectedDistrict = useGame(state => state.selectedDistrict);
 

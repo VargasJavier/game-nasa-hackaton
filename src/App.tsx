@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import Game from "./routes/Game";
+import F4FLogo from "./assets/icons/F4FLogo.png";
 import MapSelector from "./components/MapSelector";
 
 const Home = () => {
@@ -19,15 +20,6 @@ const Home = () => {
   };
 
   const handleStart = () => {
-    // Set in store before navigating
-    // Since store is global, we need to access it here
-    // But App.tsx doesn't have access to useGame
-    // So, navigate with state or something
-    // Actually, better to set in store in Game component, but since it's before, perhaps set in MapSelector or Game.
-    // For simplicity, since MapSelector is next, set it there.
-    // Or add to store here, but since no useGame, hard.
-    // Store is zustand, can access without hook, but complicated.
-    // Pass as param or navigate with state.
     nav('/map', { state: { playerName } });
   };
 
@@ -39,6 +31,7 @@ const Home = () => {
       </div>
 
       <div className="title-board">
+        <img src={F4FLogo} alt="F4F: Farm4Future" />
         <h1>FARM4FUTURE</h1>
         <span className="subtitle">clima • agua • cultivos</span>
       </div>
