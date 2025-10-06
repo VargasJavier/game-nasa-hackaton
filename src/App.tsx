@@ -31,9 +31,7 @@ const Home = () => {
       </div>
 
       <div className="title-board">
-        <img src={F4FLogo} alt="F4F: Farm4Future" />
-        <h1>FARM4FUTURE</h1>
-        <span className="subtitle">clima • agua • cultivos</span>
+        <img src={F4FLogo} alt="F4F: Farm4Future" className="logo"/>
       </div>
 
       <div className="hero">

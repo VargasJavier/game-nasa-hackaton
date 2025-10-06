@@ -65,15 +65,10 @@ body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI
 /* cartel de madera */
 .title-board{
   margin-top: -8px;
-  background: linear-gradient(#8b5e34, #6f4727);
-  border:4px solid #4a2e17; border-radius:16px;
-  padding: 16px 28px; text-align:center; color: var(--text);
-  box-shadow: 0 8px 0 #4a2e17, 0 10px 0 var(--shadow);
 }
-.title-board h1{
-  margin:0; letter-spacing:2px; font-size:34px; text-shadow:0 2px 0 #3b2a18;
+.logo {
+  width: 480px;
 }
-.title-board .subtitle{ display:block; opacity:.9; font-size:12px; }
 
 /* granjero y elementos laterales “pixel” */
 .hero{ margin: 18px 0 10px; display:flex; gap:32px; align-items:flex-end; }
