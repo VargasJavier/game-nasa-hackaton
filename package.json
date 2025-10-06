@@ -17,6 +17,7 @@
   "dependencies": {
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.3",
+    "xlsx": "^0.18.5",
     "zustand": "^5.0.8"
   }
 }

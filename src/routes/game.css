@@ -592,6 +592,7 @@
   align-items: center;
   justify-content: start;
   height: 100vh;
+  width: 1024px;
   background: linear-gradient(to bottom, #87CEEB, #98FB98);
   color: #333;
   font-family: Arial, sans-serif;

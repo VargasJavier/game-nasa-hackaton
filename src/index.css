@@ -12,7 +12,6 @@
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial; background: radial-gradient(1000px 600px at 100% 0, #0b1223 0%, var(--bg) 45%); color: var(--text); height: 100dvh; display: grid; place-items: center;
-background-image: url('./assets/icons/background-menu.jpg');
 backdrop-filter: blur(5px);
   background-position: center center;
   background-repeat: no-repeat;
@@ -46,19 +45,12 @@ backdrop-filter: blur(5px);
 
 /* Pantalla de inicio */
 .start-wrap{
-  /* --green:#80c56e; --green-dark:#5fa455; --wood:#8b5e34; --wood-dark:#6f4727;
-  --text:#fff7de; --shadow:#1b2a3a;
-  min-height: 100vh; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-  background:
-    radial-gradient(800px 400px at 50% -10%, #a8e6a2 0%, #7ccf70 40%, #58a65a 70%) no-repeat;
-  padding: 32px 16px;
-  image-rendering: pixelated; */
   background-image: url('./assets/icons/background-menu.jpg');
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
-  min-width: 1000px;
-  min-height: 550px;
+  min-width: 100vw;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -81,7 +73,21 @@ backdrop-filter: blur(5px);
   margin-top: -8px;
 }
 .logo {
-  width: 480px;
+  width: 420px;
+  display: inline-block;
+  will-change: transform;
+  animation: floatY 3s ease-in-out infinite;
+}
+
+@keyframes floatY {
+  0%   { transform: translateY(-6px); }
+  50%  { transform: translateY(6px); }
+  100% { transform: translateY(-6px); }
+}
+
+/* Accesibilidad: si alguien prefiere menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .logo { animation: none; }
 }
 
 /* granjero y elementos laterales “pixel” */
@@ -122,11 +128,36 @@ backdrop-filter: blur(5px);
 .wx-btn small{ font-size:16px; color:#99bbd8; font-weight: bold; }
 
 .start-btn{
-  width: 220px; height: 46px; background:#ffd46b; color:#1c1608; font-weight:800;
-  border:4px solid #d6a73b; border-radius:14px; cursor:pointer; letter-spacing:1px;
-  box-shadow:0 6px 0 #b3822c;
+  width: 220px;
+  height: 46px;
+  background:#d9a88a;
+  color:#1c1608;
+  font-weight:800;
+  border:4px solid #f7dbc6;
+  border-radius:14px;
+  cursor:pointer;
+  letter-spacing:1px;
+  box-shadow:0 8px 0 #994e4a;
+  display: inline-block;
+  will-change: transform;
+  animation: floatYButton 3s ease-in-out infinite;
   transition: all .3s ease;
 }
+
+@keyframes floatYButton {
+  0%   { transform: translateY(-6px); }
+  50%  {
+    transform: translateY(6px);
+    box-shadow:0 6px 0 #994e4a;
+  }
+  100% { transform: translateY(-6px); }
+}
+
+/* Accesibilidad: si alguien prefiere menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .logo { animation: none; }
+}
+
 .start-btn:active{ transform: translateY(2px); box-shadow:0 4px 0 #b3822c; }
 
 .start-btn:hover{

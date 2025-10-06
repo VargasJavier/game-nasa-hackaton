@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import Game from "./routes/Game";
 import F4FLogo from "./assets/icons/F4FLogo.png";
+import F4FNube from "./assets/icons/F4FNube.png";
 import MapSelector from "./components/MapSelector";
 
 const Home = () => {
@@ -25,11 +26,7 @@ const Home = () => {
 
   return (
     <div className="start-wrap">
-      <div className="sky">
-        <div className="cloud" />
-        <div className="sun" />
-      </div>
-
+      <div></div>
       <div className="title-board">
         <img src={F4FLogo} alt="F4F: Farm4Future" className="logo"/>
       </div>

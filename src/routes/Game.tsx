@@ -178,7 +178,8 @@ export default function Game() {
           <p>Get luck.</p>
           <button
           onClick={() => {
-            setFinalTutorialCompleted(true);
+                setFinalTutorialCompleted(true);
+                
           }
           }>Finish the tutorial</button>
         </div>
