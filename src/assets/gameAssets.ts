@@ -9,9 +9,9 @@ import texture3 from "./icons/FarmLandOnTopvariant1.png"
 import texture4 from "./icons/FarmLandOnTopvariant2.png"
 import texture5 from "./icons/FarmLandOnTopvariant1.png"
 import texture6 from "./icons/FarmLandOnTopvariant2.png"
-import riverImg from './icons/river.webp'
-import lowerRiverImg from './icons/lowerRiiver.webp'
-import dryRiverImg from './icons/dryRiiver.webp'
+import riverImg from './icons/river.png'
+import lowerRiverImg from './icons/lowerRiver.png'
+import dryRiverImg from './icons/dryRiver.png'
 import laLibertadMap from './icons/laLibertad.png'
 import stageIrrigate from "./icons/WoodTexture2.png" // placeholder for irrigate image
 
