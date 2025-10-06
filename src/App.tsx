@@ -40,16 +40,16 @@ const Home = () => {
 
       <div className="title-board">
         <h1>FARM4FUTURE</h1>
-        <span className="subtitle">clima • agua • cultivos</span>
+        <span className="subtitle">Clima • Agua • Cultivos</span>
       </div>
 
-      <div className="hero">
+      {/* <div className="hero">
         <div className="barn" />
         <div className="farmer" />
         <div className="thermo">
           <div className="thermo-mercury" />
         </div>
-      </div>
+      </div> */}
 
       <div className="weather-grid">
         <button className="wx-btn"><span>☀️</span><small>Dry</small></button>
