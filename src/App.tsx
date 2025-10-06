@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import Game from "./routes/Game";
 import F4FLogo from "./assets/icons/F4FLogo.png";
-import F4FNube from "./assets/icons/F4FNube.png";
+// import F4FNube from "./assets/icons/F4FNube.png";
 import MapSelector from "./components/MapSelector";
 
 const Home = () => {

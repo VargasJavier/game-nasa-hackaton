@@ -1,5 +1,5 @@
 import { useGame } from '../game/state/store';
-import type { Inventory, InventoryItem } from '../game/core/types';
+import type { InventoryItem } from '../game/core/types';
 
 export const useInventory = () => {
   const {

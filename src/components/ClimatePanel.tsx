@@ -4,9 +4,8 @@ import type { ClimateRecord } from './ClimateRecord/ClimateRecord';
 import { getDataByIdDepartamento } from '../services/excelClient';
 // import { forecastYearForDept } from '../hooks/UseClimateExample';
 
-const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecast, onExpand, isWeatherTutorialActive, selectedDistrict }) => {
+const ClimatePanel: React.FC<ClimatePanelProps> = ({ onExpand, isWeatherTutorialActive, selectedDistrict }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [forecasts, setForecasts] = useState<Forecast[]>([]);
   const [rows, setRows] = useState<ClimateRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
@@ -85,15 +84,15 @@ const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecas
     }
   };
 
-  const getWeatherIcon = (label: string) => {
-    switch (label) {
-      case 'seca': return '☀️';
-      case 'ligera': return '🌦️';
-      case 'moderada': return '🌧️';
-      case 'fuerte': return '⛈️';
-      default: return '❓';
-    }
-  };
+  // const getWeatherIcon = (label: string) => {
+  //   switch (label) {
+  //     case 'seca': return '☀️';
+  //     case 'ligera': return '🌦️';
+  //     case 'moderada': return '🌧️';
+  //     case 'fuerte': return '⛈️';
+  //     default: return '❓';
+  //   }
+  // };
 
   function classifyClimate(temp: number, hum: number, prec: number): {
     name: string,
@@ -110,15 +109,15 @@ const ClimatePanel: React.FC<ClimatePanelProps> = ({ currentTurn, currentForecas
   return { name: "Moderado", icon: '🌥️'};
 }
 
-  const getWeatherDescription = (label: string) => {
-    switch (label) {
-      case 'seca': return 'Dry';
-      case 'ligera': return 'Light';
-      case 'moderada': return 'Modest';
-      case 'fuerte': return 'Heavy';
-      default: return '';
-    }
-  };
+  // const getWeatherDescription = (label: string) => {
+  //   switch (label) {
+  //     case 'seca': return 'Dry';
+  //     case 'ligera': return 'Light';
+  //     case 'moderada': return 'Modest';
+  //     case 'fuerte': return 'Heavy';
+  //     default: return '';
+  //   }
+  // };
 
   return (
     <div
