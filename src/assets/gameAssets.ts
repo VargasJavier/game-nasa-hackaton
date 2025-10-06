@@ -23,7 +23,7 @@ const ASSETS = {
   farmerIdleInvert: farmerInvert,
   farmerWalk: farmerWalk,
   farmerWalkInvert: farmerWalkInvert,
-  laLibertadMap: laLibertadMap
+  laLibertadMap: laLibertadMap,
   tree: tree,
   plotStages: [
     texture1, // tierra
