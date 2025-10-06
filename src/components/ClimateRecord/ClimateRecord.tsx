@@ -126,19 +126,18 @@ export function buildClimateForecast(records: ClimateRecord[], targetYear: numbe
 
   // tIndex del último punto + 1 es el próximo mes
   const startIndex = data.length; // 60 si son 5 años completos
-  const firstHistYear = data[0].Año;
+  // const firstHistYear = data[0].Año;
   const lastHistYear  = data[data.length - 1].Año;
 
   // Genera pronóstico para los 12 meses del targetYear
   const forecast: ForecastPoint[] = [];
   for (let m = 1; m <= 12; m++) {
     // ¿qué índice t le corresponde a (targetYear, m)?
-    const monthsSinceStart =
-      (targetYear - firstHistYear) * 12 + (m - data[0].MesId); // aproximación
+    // const monthsSinceStart =(targetYear - firstHistYear) * 12 + (m - data[0].MesId); // aproximación
     // Mejor: calcular relativo al final
-    const t = (targetYear - lastHistYear) * 12 + m + (data[data.length - 1].MesId - 12);
+    // const t = (targetYear - lastHistYear) * 12 + m + (data[data.length - 1].MesId - 12);
 
-    const idx = startIndex + (m - 1) + (targetYear - lastHistYear - 1) * 12 + (12 - (data[data.length - 1].MesId));
+    // const idx = startIndex + (m - 1) + (targetYear - lastHistYear - 1) * 12 + (12 - (data[data.length - 1].MesId));
 
     // El cálculo anterior puede marear; usa uno estable:
     const tIndex = data.findIndex(

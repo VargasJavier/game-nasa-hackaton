@@ -79,7 +79,7 @@ export function forecastYearForDept(
   const depto = records.filter(r => r.IdDepartamento === idDepto).sort(sortChrono);
   if (!depto.length) return [];
 
-  const firstYear = depto[0].Año;
+  // const firstYear = depto[0].Año;
   const last = depto[depto.length - 1];
 
   // series cronológicas
