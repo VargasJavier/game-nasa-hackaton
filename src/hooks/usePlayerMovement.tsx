@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useGame } from '../game/state/store';
 import ASSETS from '../assets/gameAssets';
 
@@ -19,6 +19,7 @@ export const usePlayerMovement = () => {
     toggleControls
   } = useGame();
 
+  const [isMoving, setIsMoving] = useState(false);
   const keys = useRef<Record<string, boolean>>({});
   const raf = useRef<number | null>(null);
   const last = useRef<number>(performance.now());
@@ -70,6 +71,9 @@ export const usePlayerMovement = () => {
       if (keys.current["arrowup"] || keys.current["w"]) dy -= 1;
       if (keys.current["arrowdown"] || keys.current["s"]) dy += 1;
 
+      const moving = !!(dx || dy);
+      if (moving !== isMoving) setIsMoving(moving);
+
       if (dx || dy) {
         move(dx, dy, dt);
       }
@@ -77,9 +81,11 @@ export const usePlayerMovement = () => {
     };
     raf.current = requestAnimationFrame(loop);
     return () => { if (raf.current) cancelAnimationFrame(raf.current); };
-  }, [move, face]);
+  }, [move, face, isMoving]);
 
-  const frameFarmer = player.facing === "left" ? ASSETS.farmerWalk : ASSETS.farmerWalkInvert;
+  const frameFarmer = isMoving
+    ? (player.facing === "left" ? ASSETS.farmerWalk : ASSETS.farmerWalkInvert)
+    : (player.facing === "left" ? ASSETS.farmer : ASSETS.farmerInvert);
 
   return {
     player,
